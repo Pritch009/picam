@@ -31,6 +31,10 @@ class Camera:
                 "size": (640, 480), 
                 "format": "YUV420"
             },
+            "raw": {
+                "size": (640, 480),
+                "format": "YUV420"
+            },
             "transform": {
                 "rotation": 0,
                 "hflip": False,
