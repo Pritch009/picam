@@ -1,10 +1,11 @@
 import tensorflow as tf
 
-output_model_name = 'mobilenetv2_ssd_fixed.tflite'
+resolution = (1920, 1080)
+output_model_name = f'mobilenetv2_ssd_fixed_{resolution[0]}_{resolution[1]}.tflite'
 model = tf.saved_model.load('./model')
 
 concrete_func = model.signatures[tf.saved_model.DEFAULT_SERVING_SIGNATURE_DEF_KEY]
-concrete_func.inputs[0].set_shape([None, 1280, 720, 3])
+concrete_func.inputs[0].set_shape([None, resolution[0], resolution[1], 3])
 converter = tf.lite.TFLiteConverter.from_concrete_functions([concrete_func])
 
 try:
