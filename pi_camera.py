@@ -19,6 +19,12 @@ class Camera:
     def __init__(self, resolution=(640, 480)):
         from libcamera import ColorSpace, Transform
         self.camera = PiCamera()
+        sensor = None
+        for sensor in self.camera.sensor_modes:
+            if sensor["size"][0] == resolution[0] and sensor["size"][1] == resolution[1]:
+                break
+        if sensor is None:
+            raise ValueError(f"No sensor mode found for resolution {resolution}")
         config = {
             "size": resolution, 
             "format": "XRGB8888", 
@@ -34,9 +40,14 @@ class Camera:
             },
             "raw": {
                 "size": (640, 480),
-                "format": "XRGB8888",
+                "format": "SRGGB10",
             },
             "transform": Transform(),
+            "buffer_count": 2,
+            "sensor": {
+                "output_size": sensor["size"],
+                "bit_depth": sensor["bit_depth"],
+            }
         }
         self.camera.configure(config)
 
