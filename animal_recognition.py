@@ -3,7 +3,6 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import numpy as np
 import os
-from tflite_support import metadata as _metadata
 from ai_edge_litert.interpreter import Interpreter
 
 
