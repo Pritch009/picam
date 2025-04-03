@@ -18,7 +18,8 @@ else:
 class Camera:
     def __init__(self, resolution=(640, 480)):
         self.camera = PiCamera()
-        self.camera.configure({"size": resolution})
+        config = {"size": resolution, "format": "XRGB8888"}
+        self.camera.configure(config)
 
     def start_feed(self):
         # PiCamera2 starts automatically, so this is not needed
