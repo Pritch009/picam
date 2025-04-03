@@ -1,6 +1,6 @@
 opencv-python
 numpy
 Pillow
-tensorflow
 tensorflow-hub
 flask
+ai_edge_litert
