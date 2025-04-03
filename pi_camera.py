@@ -11,7 +11,7 @@ if use_mock_camera:
     print("Using MockCamera")
 else:
     try:
-        from picamera import PiCamera
+        from picamera2 import PiCamera
         print("Using Raspberry Pi camera")
     except ImportError:
         print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
@@ -44,7 +44,7 @@ class Camera:
             print("Error decoding frame")
             # Create a dummy image (e.g., a black image) as fallback
             frame = np.zeros((self.camera.resolution[1], self.camera.resolution[0], 3), dtype=np.uint8)
-            
+
         return frame
 
     def close(self):
