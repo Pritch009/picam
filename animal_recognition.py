@@ -140,7 +140,7 @@ class AnimalRecognizer:
                     continue
 
                 # Check if the class name contains keywords for detection
-                if any(keyword in class_name.lower() for keyword in self.keywords):
+                if class_name in self.keywords:
                     box = detection_boxes[i]
                     ymin, xmin, ymax, xmax = box
                     im_height, im_width, _ = frame.shape  # Use original frame dimensions

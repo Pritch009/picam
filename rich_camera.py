@@ -44,7 +44,6 @@ class RichCamera:
         video_database = VideoDatabase(db_name=self.database_path)
         frame_number = 0
         current_time = time.time()
-        min_frame_time = 1 / self.target_framerate  # Minimum time between frames
         while True:
             prev_frame_time = current_time
             # Capture frame
@@ -63,12 +62,13 @@ class RichCamera:
 
             # Process frame
             animals = self.animal_recognizer.recognize_animal(frame)
-            motion_detected = self.motion_detector.get_motion_status()
+            # Detect motion
+            self.motion_detector.detect_motion(frame)
 
             current_time = time.time() # End of frame processing
 
             # Detect motion in the frame
-            if motion_detected:
+            if self.motion_detector.get_motion_status():
                 last_motion_time = current_time  # Update last motion time
                 print("Motion detected, checking for animals...")
 
@@ -121,15 +121,15 @@ class RichCamera:
                 video_database.update_video_duration(video_id, elapsed_time)
 
                 # Explicit stop condition
-                no_motion_condition = len(animals) == 0 and current_time - last_motion_time >= self.motion_timeout
+                no_motion_condition = len(animals) == 0 and (int(current_time - last_motion_time) >= self.motion_timeout)
                 max_time_condition = elapsed_time >= self.recording_duration
 
                 if max_time_condition or no_motion_condition:
                     if no_motion_condition:
-                        print("No motion detected for a while, stopping recording...")
+                        print(f"No motion detected for a while ({int(current_time - last_motion_time)} seconds), stopping recording...")
                     elif max_time_condition:
                         print("Max recording duration reached, stopping recording...")
-                        
+
                     print("\nRecording duration or motion timeout reached, stopping recording...")
                     print(f"{frame_number} frames recorded in {elapsed_time:.2f} seconds.")
 
