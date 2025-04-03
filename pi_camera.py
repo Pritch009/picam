@@ -22,7 +22,7 @@ class Camera:
         config = {
             "size": resolution, 
             "format": "XRGB8888", 
-            "colour_space": ColorSpace.SRGB,
+            "colour_space": ColorSpace.Srgb,
             "exposure_mode": "auto",
             "main": { 
                 "format": "XRGB8888",
