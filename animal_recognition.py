@@ -3,6 +3,8 @@ import tensorflow as tf
 import tensorflow_hub as hub
 import numpy as np
 import os
+from tflite_support import metadata as _metadata
+from ai_edge_litert.interpreter import Interpreter
 
 
 class AnimalRecognizer:
@@ -26,23 +28,72 @@ class AnimalRecognizer:
             print("Model downloaded.")
         else:
             # Load from saved_model.pb
-            self.model = tf.saved_model.load(self.model_path)
+            self.model = Interpreter(model_path=self.model_path)
+            self.model.allocate_tensors()
+            self.input_details = self.model.get_input_details()
+            self.output_details = self.model.get_output_details()
+            _, input_height, input_width, _ = self.input_details[0]['shape']
+            is_quantized_input = self.input_details[0]['dtype'] == np.uint8
+            is_quantized_output = self.output_details[0]['dtype'] == np.uint8
+
             print("Model loaded.")
         if self.model is None:
             raise ValueError("Failed to load the model.")
 
-    def load_class_name_map(self, class_names_path="./oidv6-class-descriptions.csv"):
-        # Load the class name map from a csv file
-        class_names = {}
-        with open(class_names_path, 'r') as f:
+    def load_class_name_map(self, class_names_path="./coco-classes.txt"):
+        self.labels = {}
+        path = os.path.dirname(self.model_path)
+        path = os.path.join(path, class_names_path)
+        with open(path, "r") as f:
+            ind = 1
             for line in f:
-                parts = line.strip().split(',')
-                if len(parts) == 2:
-                    class_id = parts[0]
-                    class_name = parts[1]
-                    class_names[class_id] = class_name
-        self.class_names = class_names
-        print("Class name map loaded.")
+                class_name = line.strip()
+                self.labels[ind] = class_name
+                ind += 1
+
+        # # Extract metadata
+        # displayer = _metadata.MetadataDisplayer.with_model_file(self.model_path)
+        # raw_json_file = displayer.get_metadata_json()
+
+        # # Load json as a dictionary
+        # json_file = json.loads(raw_json_file)
+
+        # # Get the name of the labels file 
+        # labels_file = None
+        # for item in json_file["subgraph_metadata"]:
+        #     if "output_tensor_metadata" in item:
+        #         output_tensor_metadata = item["output_tensor_metadata"]
+        #         for metadata in output_tensor_metadata:
+        #             if metadata.get("name", "") == "logit":
+        #                 associated_files = metadata.get("associated_files", [])
+        #                 for file in associated_files:
+        #                     if file["type"] == "TENSOR_AXIS_LABELS":
+        #                         labels_file = file["name"]
+        #                         break
+        #                 if labels_file:
+        #                     break
+        #         if labels_file:
+        #             break
+        #     if labels_file:
+        #         break
+
+        # if labels_file is None:
+        #     raise ValueError("No labels file found in the model metadata.")
+        # print(f"Labels file: {labels_file}")
+
+        # model_dir = os.path.dirname(self.model_path)
+        # labels_file_path = os.path.join(model_dir, labels_file)
+        # if not os.path.exists(labels_file_path):
+        #     # unzip the model
+        #     os.system(f"unzip {self.model_path} -d {model_dir}")
+        #     print(f"Labels file path: {labels_file_path}")
+
+        # # Load the labels file
+        # with open(labels_file_path, "r") as f:
+        #     # Remove the new line characters
+        #     self.labels = [line.strip() for line in f.readlines()]
+
+        print("Class names loaded.")
 
 
     def recognize_animal(self, frame):
@@ -53,38 +104,44 @@ class AnimalRecognizer:
         # Convert the frame to RGB (if it's not already)
         rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        # Resize the frame to a fixed size (e.g., 640x480)
-        resized_frame = cv2.resize(rgb_frame, (640, 480))
+        # Get input shape   
+        input_shape = self.input_details[0]['shape']
+        input_height, input_width = input_shape[1:3]
 
-        # Normalize pixel values to be in the range [0.0, 1.0]
-        normalized_frame = resized_frame / 255.0
-        
+        # Resize the frame to a fixed size (e.g., 640x480)
+        resized_frame = cv2.resize(rgb_frame, (input_width, input_height))
+
         # Expand dimensions since the model expects images to have shape: [1, height, width, 3]
-        input_tensor = np.expand_dims(normalized_frame, 0).astype(np.float32)
+        input_tensor = np.expand_dims(resized_frame, 0)
+
+        # Set the input tensor
+        self.model.set_tensor(self.input_details[0]['index'], input_tensor)
 
         # Perform the object detection
-        detections = self.model.signatures['default'](tf.constant(input_tensor))
+        self.model.invoke()
 
         # Extract detection boxes, scores, class names, and class labels
-        boxes = detections['detection_boxes'].numpy()
-        scores = detections['detection_scores'].numpy()
-        class_names = detections['detection_class_names'].numpy()
-        class_labels = detections['detection_class_labels'].numpy()
-
-        num_detections = scores.shape[0]
+        detection_anchor_indices = self.model.get_tensor(self.output_details[0]['index'])[0]
+        detection_boxes = self.model.get_tensor(self.output_details[1]['index'])[0]
+        detection_classes = self.model.get_tensor(self.output_details[2]['index'])[0]
+        detection_multiclass_scores = self.model.get_tensor(self.output_details[3]['index'])[0]
+        detection_scores = self.model.get_tensor(self.output_details[4]['index'])[0]
+        num_detections = self.model.get_tensor(self.output_details[5]['index'])[0].astype(np.uint32)
+        raw_detection_boxes = self.model.get_tensor(self.output_details[6]['index'])[0]
+        raw_detection_scores = self.model.get_tensor(self.output_details[7]['index'])[0]
 
         # Filter detections based on a confidence threshold (e.g., 30%)
         animal_detections = []
         for i in range(num_detections):
-            if scores[i] > self.threshold:
-                class_name_raw = class_names[i].decode('utf-8')  # Decode bytes to string
-                class_name = self.class_names.get(class_name_raw, "").lower()
+            if detection_scores[i] > self.threshold:
+                class_name_raw = detection_classes[i].astype(np.uint32) # Decode bytes to string
+                class_name = self.labels.get(class_name_raw, "").lower()
                 if class_name == "":
                     continue
 
                 # Check if the class name contains keywords for detection
                 if any(keyword in class_name.lower() for keyword in self.keywords):
-                    box = boxes[i]
+                    box = detection_boxes[i]
                     ymin, xmin, ymax, xmax = box
                     im_height, im_width, _ = frame.shape  # Use original frame dimensions
                     (left, right, top, bottom) = (xmin * im_width, xmax * im_width,

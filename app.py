@@ -25,8 +25,9 @@ from rich_camera import RichCamera
 app = Flask(__name__)
 
 # model_path = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
-model_path = "model/"
-keywords = ['man', 'bird', 'chipmunk', 'dog', 'cat', 'deer', 'fox', 'bear', 'squirrel', 'rabbit', 'raccoon']
+# model_path = "model/"
+model_path = "model/mobilenetv2_ssd_fixed.tflite"
+keywords = ['person']
 threshold = 0.4
 recording_duration = 20  # seconds
 motion_timeout = 5  # seconds

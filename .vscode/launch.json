@@ -13,6 +13,14 @@
 			"env": {
 				"USE_MOCK_CAMERA": "true"
 			}
+		},
+		{
+			"name": "Python: Convert Model",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${workspaceFolder}/model/convert_saved_model.py",
+			"console": "integratedTerminal",
+			"cwd": "${workspaceFolder}/model",
 		}
 	]
 }
