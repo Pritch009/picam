@@ -20,30 +20,26 @@ else:
 class Camera:
     def __init__(self, resolution=(640, 480)):
         self.camera = PiCamera()
-        self.camera.resolution = resolution
-        self.is_running = False
+        self.camera.configure({"size": resolution})
 
     def start_feed(self):
+        # PiCamera2 starts automatically, so this is not needed
         if not self.is_running:
-            self.camera.start_preview()
-            self.is_running = True
+            self.is_running = True # Assume running after initialization
+            self.camera.start()
 
     def stop_feed(self):
+        # PiCamera2 does not have stop_preview. Stopping the camera instead.
         if self.is_running:
-            self.camera.stop_preview()
+            self.camera.stop()
             self.is_running = False
 
     def capture_frame(self):
-        stream = BytesIO()
-        self.camera.capture(stream, format='jpeg')
-        stream.seek(0)
-        frame_data = stream.read()
-
-        frame = cv2.imdecode(np.frombuffer(frame_data, np.uint8), cv2.IMREAD_COLOR)
+        frame = self.camera.capture_array()
         if frame is None:
-            print("Error decoding frame")
+            print("Error capturing frame")
             # Create a dummy image (e.g., a black image) as fallback
-            frame = np.zeros((self.camera.resolution[1], self.camera.resolution[0], 3), dtype=np.uint8)
+            frame = np.zeros((self.camera.configuration()["size"][1], self.camera.configuration()["size"][0], 3), dtype=np.uint8)
 
         return frame
 

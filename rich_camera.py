@@ -44,6 +44,7 @@ class RichCamera:
         video_database = VideoDatabase(db_name=self.database_path)
         frame_number = 0
         current_time = time.time()
+        self.camera.start_feed()
         while True:
             prev_frame_time = current_time
             # Capture frame

@@ -10,14 +10,14 @@ class MockCamera:
             raise Exception(f"Could not open webcam at index {self.camera_index}")
         self.resolution = (int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
                            int(self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
-        self.is_previewing = False
-
-    def start_preview(self):
-        self.is_previewing = True
+        self.is_running = True
         print("Webcam preview started")
 
+    def start_preview(self):
+        pass
+
     def stop_preview(self):
-        self.is_previewing = False
+        self.is_running = False
         print("Webcam preview stopped")
 
     def capture(self, stream, format='jpeg'):
