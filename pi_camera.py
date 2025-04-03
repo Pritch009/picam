@@ -17,12 +17,12 @@ else:
 
 class Camera:
     def __init__(self, resolution=(640, 480)):
-        from libcamera import ColorSpace
+        from libcamera import ColorSpace, Transform
         self.camera = PiCamera()
         config = {
             "size": resolution, 
             "format": "XRGB8888", 
-            "colour_space": ColorSpace.Srgb,
+            "colour_space": ColorSpace.Srgb(),
             "exposure_mode": "auto",
             "main": { 
                 "format": "XRGB8888",
@@ -36,11 +36,7 @@ class Camera:
                 "size": (640, 480),
                 "format": "XRGB8888",
             },
-            "transform": {
-                "rotation": 0,
-                "hflip": False,
-                "vflip": False
-            },
+            "transform": Transform(),
         }
         self.camera.configure(config)
 
