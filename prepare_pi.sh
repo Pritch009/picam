@@ -11,7 +11,7 @@ fi
 
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y libgl1-mesa-glx libcap-dev python3-dev
+sudo apt install -y libgl1-mesa-glx libcap-dev python3-dev python3-picamera2
 
 # Create a virtual environment
 echo "Creating a virtual environment..."

@@ -11,7 +11,7 @@ if use_mock_camera:
     print("Using MockCamera")
 else:
     try:
-        from picamera2 import PiCamera
+        from picamera2 import PiCamera2 as PiCamera
         print("Using Raspberry Pi camera")
     except ImportError:
         print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
