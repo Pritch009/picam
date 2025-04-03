@@ -24,11 +24,12 @@ from rich_camera import RichCamera
 
 app = Flask(__name__)
 
-model_path = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
+# model_path = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
+model_path = "model/"
 keywords = ['man', 'bird', 'chipmunk', 'dog', 'cat', 'deer', 'fox', 'bear', 'squirrel', 'rabbit', 'raccoon']
 threshold = 0.4
-recording_duration = 300  # seconds
-motion_timeout = 15  # seconds
+recording_duration = 20  # seconds
+motion_timeout = 5  # seconds
 video_folder = "videos"
 
 if not os.path.exists(video_folder):
@@ -49,7 +50,7 @@ def list_videos():
     return {'videos': [v.to_dict() for v in videos]}
 
 
-@app.route('/video/<str:video_id>')
+@app.route('/video/<video_id>')
 def get_video(video_id):
     video = camera.video_database.get_video(video_id)
     if video:

@@ -1,5 +1,6 @@
 opencv-python
-tensorflow
 numpy
 Pillow
-tensorflow_hub
+tensorflow
+tensorflow-hub
+flask

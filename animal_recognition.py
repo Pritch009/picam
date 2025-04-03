@@ -9,12 +9,10 @@ class AnimalRecognizer:
     def __init__(
         self,
         model_path="https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1", 
-        local_model_dir="mega_detector_model",
         keywords=["cat", "man"],
         threshold=0.3
     ):
         self.model_path = model_path
-        self.local_model_dir = local_model_dir
         self.keywords = keywords
         self.threshold = threshold
         self.model = None
@@ -23,8 +21,15 @@ class AnimalRecognizer:
 
     def load_model(self):
         print("Loading model...")
-        self.model = hub.load(self.model_path)
-        print("Model downloaded.")
+        if self.model_path.startswith("http"):
+            self.model = hub.load(self.model_path)
+            print("Model downloaded.")
+        else:
+            # Load from saved_model.pb
+            self.model = tf.saved_model.load(self.model_path)
+            print("Model loaded.")
+        if self.model is None:
+            raise ValueError("Failed to load the model.")
 
     def load_class_name_map(self, class_names_path="./oidv6-class-descriptions.csv"):
         # Load the class name map from a csv file

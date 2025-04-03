@@ -12,20 +12,23 @@ class RichCamera:
         self,
         model_path="https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1",
         video_folder="videos",
+        database_path="video_database.db",
         keywords=["man"],
         threshold=0.3,
         recording_duration=300,
-        motion_timeout=15
+        motion_timeout=15,
+        target_framerate=30.0,
     ):
         # Components
         self.camera = Camera()
         self.motion_detector = MotionDetector()
         self.animal_recognizer = AnimalRecognizer(model_path=model_path, keywords=keywords, threshold=threshold)
-        self.video_database = VideoDatabase()
         # Parameters
-        self.recording_duration = motion_timeout  # seconds
-        self.motion_timeout = recording_duration  # seconds without motion to stop recording
-        self.video_database = video_folder
+        self.recording_duration = recording_duration  # seconds
+        self.motion_timeout = motion_timeout  # seconds without motion to stop recording
+        self.video_folder = video_folder # Folder to save videos
+        self.database_path =  database_path # Path to the SQLite database file
+        self.target_framerate = target_framerate  # Target framerate for video recording
         # State
         self.recording = False
         self.video_writer = None
@@ -33,17 +36,22 @@ class RichCamera:
         self.animals_seen = set()  # Track unique animals seen
 
     def run_in_background(self):
+        print("Starting camera...")
         start_time = None
-        last_motion_time = None
+        last_motion_time = time.time()
         video_id = None
         frame_errors = 0
+        video_database = VideoDatabase(db_name=self.database_path)
+        frame_number = 0
+        current_time = time.time()
+        min_frame_time = 1 / self.target_framerate  # Minimum time between frames
         while True:
+            prev_frame_time = current_time
             # Capture frame
             frame = self.camera.capture_frame()
-            current_time = time.time()
 
             # Check if the frame is valid
-            if not frame:
+            if frame is None:
                 frame_errors += 1
                 print("Error capturing frame")
                 time.sleep(1)
@@ -53,14 +61,17 @@ class RichCamera:
             elif frame_errors > 0:
                 frame_errors = 0
 
-            # Detect motion in the frame
+            # Process frame
+            animals = self.animal_recognizer.recognize_animal(frame)
             motion_detected = self.motion_detector.get_motion_status()
+
+            current_time = time.time() # End of frame processing
+
+            # Detect motion in the frame
             if motion_detected:
                 last_motion_time = current_time  # Update last motion time
                 print("Motion detected, checking for animals...")
 
-            # Detect animals in the frame
-            animals = self.animal_recognizer.recognize_animal(frame)
             if animals:
                 new_animal = False
                 # Draw bounding boxes around recognized animals
@@ -70,38 +81,58 @@ class RichCamera:
                     self.animals_seen.add(animal[0])  # Add animal class name to seen set
                     frame = self.animal_recognizer.draw_bounding_box(frame, animal)
 
-                if not recording:
+                if not self.recording:
                     print("Animals detected, starting recording...")
-                    recording = True
+                    self.recording = True
                     start_time = current_time
+                    prev_frame_time = start_time
 
                     # Define video codec and create VideoWriter object
                     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Use 'XVID' for .avi
                     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                    video_filename = f"{"{self.video_folder}/" if self.video_folder else ""}animal_recording_{timestamp}.mp4"
-                    self.video_writer = cv2.VideoWriter(video_filename, fourcc, 20.0, (frame.shape[1], frame.shape[0]))
+                    containing_folder = f"{self.video_folder}/" if self.video_folder else ""
+                    video_filename = f"{containing_folder}animal_recording_{timestamp}.mp4"
+                    self.video_writer = cv2.VideoWriter(
+                        video_filename, 
+                        fourcc,
+                        self.target_framerate,
+                        (frame.shape[1], frame.shape[0])
+                    )
 
                     # Insert video entry into the database
-                    video_id = self.video_database.insert_video(video_filename, start_time, self.animals_seen)
+                    video_id = video_database.insert_video(video_filename, start_time, self.animals_seen)
                 elif new_animal:
                     # Update the database with new animals
-                    self.video_database.update_video_animals(video_id, self.animals_seen)
+                    video_database.update_video_animals(video_id, self.animals_seen)
 
             # Write the frame to the video file if recording
-            if recording:
+            if self.recording:
                 # Record frame
-                self.video_writer.write(frame)
+                num_frames = max(round(self.target_framerate * (current_time - prev_frame_time)), 1)
+                for i in range(num_frames):
+                    self.video_writer.write(frame)
+
+                frame_number += 1
+                frame_mod = (frame_number % 4) + 1
+                print("." * frame_mod + " " * (5 - frame_mod), end="\r", flush=True)  # Print a dot for each frame recorded
 
                 # Check for stop conditions
                 elapsed_time = current_time - start_time
-                motion_since_start = current_time - last_motion_time
-                self.video_database.update_video_duration(video_id, elapsed_time)
+                video_database.update_video_duration(video_id, elapsed_time)
 
                 # Explicit stop condition
-                should_stop = elapsed_time >= self.recording_duration or motion_since_start >= self.motion_timeout
+                no_motion_condition = len(animals) == 0 and current_time - last_motion_time >= self.motion_timeout
+                max_time_condition = elapsed_time >= self.recording_duration
 
-                if should_stop:
-                    print("Recording duration or motion timeout reached, stopping recording...")
+                if max_time_condition or no_motion_condition:
+                    if no_motion_condition:
+                        print("No motion detected for a while, stopping recording...")
+                    elif max_time_condition:
+                        print("Max recording duration reached, stopping recording...")
+                        
+                    print("\nRecording duration or motion timeout reached, stopping recording...")
+                    print(f"{frame_number} frames recorded in {elapsed_time:.2f} seconds.")
+
                     # Update class state
                     self.recording = False
                     self.video_writer.release()
@@ -111,8 +142,8 @@ class RichCamera:
                     # Update local state
                     motion_detected = False
                     start_time = None
-                    last_motion_time = None
                     video_filename = None
+                    frame_number = 0
 
             else:
                 # Reset motion_detected if no motion is detected for a while
