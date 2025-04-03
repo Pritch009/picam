@@ -44,6 +44,7 @@ class Camera:
             },
             "transform": Transform(),
             "buffer_count": 2,
+            "display": None,
             "sensor": {
                 "output_size": sensor["size"],
                 "bit_depth": sensor["bit_depth"],
