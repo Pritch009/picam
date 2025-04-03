@@ -21,7 +21,7 @@ class Camera:
         config = {
             "size": resolution, 
             "format": "XRGB8888", 
-            "colour_space": "RGB888",
+            "colour_space": "SRGB",
             "exposure_mode": "auto",
             "main": { 
                 "format": "XRGB8888",
