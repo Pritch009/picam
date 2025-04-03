@@ -31,6 +31,11 @@ class Camera:
                 "size": (640, 480), 
                 "format": "YUV420"
             },
+            "transform": {
+                "rotation": 0,
+                "hflip": False,
+                "vflip": False
+            },
         }
         self.camera.configure(config)
 
