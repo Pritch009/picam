@@ -14,9 +14,14 @@ sudo apt upgrade -y
 sudo apt install -y libgl1-mesa-glx libcap-dev python3-dev
 
 # Create a virtual environment
-python3 -m venv venv
+echo "Creating a virtual environment..."
+python3 -m venv --system-site-packages venv
 source venv/bin/activate
+echo "Virtual environment created and activated."
 
+echo "Installing python dependencies..."
 # Install the required package
 pip install -r requirements.txt
 pip install -r pi_requirements.txt
+
+echo "All dependencies installed!"
