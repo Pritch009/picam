@@ -1,6 +1,6 @@
-videos/
-__pycache__/
-tests/__pycache__/
-.pytest_cache/
-.vscode/
+videos
+__pycache__
+tests/__pycache__
+.pytest_cache
+.vscode
 *.db
