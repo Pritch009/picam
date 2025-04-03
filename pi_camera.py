@@ -46,6 +46,7 @@ class Camera:
             "buffer_count": 2,
             "display": None,
             "encode": None,
+            "queue": True,
             "sensor": {
                 "output_size": sensor["size"],
                 "bit_depth": sensor["bit_depth"],
