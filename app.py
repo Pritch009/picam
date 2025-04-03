@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 # model_path = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
 # model_path = "model/"
-model_path = "model/mobilenetv2_ssd_fixed.tflite"
+model_path = "model/mobilenetv2_ssd_fixed_1920_1080.tflite"
 keywords = ['person', 'cat', 'bear']
 threshold = 0.5
 recording_duration = 20  # seconds

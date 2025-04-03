@@ -18,7 +18,13 @@ else:
 class Camera:
     def __init__(self, resolution=(640, 480)):
         self.camera = PiCamera()
-        config = {"size": resolution, "format": "XRGB8888", "colour_space": "RGB888"}
+        config = {
+            "size": resolution, 
+            "format": "XRGB8888", 
+            "colour_space": "RGB888",
+            "transform": "rotate-0",
+            "exposure_mode": "auto",
+        }
         self.camera.configure(config)
 
     def start_feed(self):
