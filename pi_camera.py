@@ -1,7 +1,4 @@
-from io import BytesIO
 import os
-
-import cv2
 import numpy as np
 
 use_mock_camera = os.environ.get('USE_MOCK_CAMERA', 'False').lower() == 'true'
@@ -11,8 +8,9 @@ if use_mock_camera:
     print("Using MockCamera")
 else:
     try:
-        from picamera2 import Picamera2 as PiCamera
+        from picamera2 import Picamera2
         print("Using Raspberry Pi camera")
+        PiCamera = Picamera2
     except ImportError:
         print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
         from mock_camera import MockCamera as PiCamera
