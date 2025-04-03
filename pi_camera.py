@@ -30,7 +30,7 @@ class Camera:
             },
             "lores": {
                 "size": (640, 480), 
-                "format": "XRGB8888",
+                "format": "YUV420",
             },
             "raw": {
                 "size": (640, 480),
