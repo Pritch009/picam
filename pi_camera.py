@@ -22,8 +22,15 @@ class Camera:
             "size": resolution, 
             "format": "XRGB8888", 
             "colour_space": "RGB888",
-            "transform": "rotate-0",
             "exposure_mode": "auto",
+            "main": { 
+                "format": "XRGB8888",
+                "size": resolution,
+            },
+            "lores": {
+                "size": (640, 480), 
+                "format": "YUV420"
+            },
         }
         self.camera.configure(config)
 
