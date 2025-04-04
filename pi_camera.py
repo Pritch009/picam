@@ -1,4 +1,5 @@
 import os
+import cv2
 import numpy as np
 
 use_mock_camera = os.environ.get('USE_MOCK_CAMERA', 'False').lower() == 'true'
@@ -76,8 +77,9 @@ class Camera:
         if frame is None:
             print("Error capturing frame")
             # Create a dummy image (e.g., a black image) as fallback
-            frame = np.zeros((self.config["main"]["size"][1], self.config["main"]["size"][0], 3), dtype=np.uint8)
-
+            return None
+                    
+        frame = cv2.cvtColor(frame, cv2.COLOR_XRGB2RGB)
         return frame
 
     def close(self):
