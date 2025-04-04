@@ -3,7 +3,7 @@ from pi_camera import Camera
 from PIL import Image
 import io
 
-def test_still():
+def test_still(image_path="test.jpg"):
     camera = Camera()
     camera.start_feed()
     print("Camera started, capturing frame...")
@@ -21,20 +21,19 @@ def test_still():
 
     img.save(stream, format='JPEG')
     stream.seek(0)
-    with open("output.jpg", "wb") as f:
+    with open(image_path, "wb") as f:
         f.write(stream.read())
     stream.close()
     print("Camera closed")
 
-def test_video():
+def test_video(video_path="test.mp4"):
     camera = Camera()
     camera.start_feed()
-    video_filename = "output_video.mp4"
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # Codec for mp4
     target_framerate = 30  # Target framerate
     # Define video codec and create VideoWriter object
     video_writer = cv2.VideoWriter(
-        video_filename, 
+        video_path, 
         fourcc,
         target_framerate,
         (frame.shape[1], frame.shape[0])
@@ -49,6 +48,8 @@ def test_video():
         else:
             print("Failed to capture frame")
         video_writer.write(frame)
+
+    print("Saving video...")
     video_writer.release()
     print("Video saved successfully")
     camera.stop_feed()
