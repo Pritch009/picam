@@ -36,7 +36,7 @@ def test_video(video_path="test.mp4"):
         video_path, 
         fourcc,
         target_framerate,
-        (frame.shape[1], frame.shape[0])
+        (camera.resolution[1], camera.resolution[0])
     )
 
     print("Camera started, capturing video...")
