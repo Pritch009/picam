@@ -27,7 +27,7 @@ class MockCamera:
         self.is_running = False
         print("Webcam preview stopped")
 
-    def capture_frame(self):
+    def capture_frame(self, camera="main"):
         # Capture frame from webcam
         ret, frame = self.video_capture.read()
         if not ret:

@@ -10,34 +10,11 @@ class Camera:
         self.configure()
     
     def configure(self):
-        sensor = None
-        for sensor in self.camera.sensor_modes:
-            if sensor["size"][0] == self.resolution[0] and sensor["size"][1] == self.resolution[1]:
-                break
-        if sensor is None:
-            raise ValueError(f"No sensor mode found for resolution {self.resolution}")
-        self.config = {
-            "size": self.resolution, 
-            "main": { 
-                "format": "XRGB8888",
-                "size": (1920, 1080),
-            },
-            "lores": {
-                "format": "YUV420",
-                "size": (640, 480), 
-            },
-            "raw": {
-                "format": "SRGGB10",
-                "size": (1920, 1080),
-            },
-            "transform": Transform(),
-            "buffer_count": 2,
-            "display": None,
-            "encode": None,
-            "queue": True,
-            "sensor": {},
-            "controls": {},
-        }
+        self.config = self.camera.create_video_configuration(
+            main={"size": (1920, 1080), "format": "XRGB8888"},
+            lores={"size": (640, 480), "format": "YUV420"},
+            raw={"size": (1920, 1080), "format": "SRGGB10"},
+        )
         self.camera.configure(self.config)
 
     def start_feed(self):
@@ -52,16 +29,18 @@ class Camera:
             self.camera.stop()
             self.is_running = False
 
-    def capture_frame(self):
-        frame = self.camera.capture_array("main")
-        if frame is None:
-            print("Error capturing frame")
-            # Create a dummy image (e.g., a black image) as fallback
-            return None
-                    
-        # Convert the frame to BGR format (OpenCV uses BGR)
-        # return frame
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)  # Convert from RGB to BGR
+    def capture_frame(self, camera="main"):
+        frame = None
+        match camera:
+            case "main":
+                frame = self.camera.capture_array("main")
+                frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
+            case "lores":
+                frame = self.camera.capture_array("lores")
+                frame = cv2.cvtColor(frame, cv2.COLOR_YUV2RGB_I420)
+            case "raw":
+                frame = self.camera.capture_array("raw")
+                frame = cv2.cvtColor(frame, cv2.COLOR_BAYER_RG2RGB)
         return frame
 
     def close(self):
