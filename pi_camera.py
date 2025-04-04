@@ -81,7 +81,10 @@ class Camera:
                     
         # Convert the frame to BGR format (OpenCV uses BGR)
         # return frame
-        return frame[:, :, :3]
+        frame = frame[:, :, :4]  # Slice to keep only R, G, and B channels
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+
+        return frame
 
     def close(self):
         self.camera.close()
