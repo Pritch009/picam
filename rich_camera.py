@@ -18,9 +18,10 @@ class RichCamera:
         recording_duration=300,
         motion_timeout=15,
         target_framerate=30.0,
+        resolution=(1920, 1080)
     ):
         # Components
-        self.camera = Camera()
+        self.camera = Camera(resolution=resolution)
         self.motion_detector = MotionDetector()
         self.animal_recognizer = AnimalRecognizer(model_path=model_path, keywords=keywords, threshold=threshold)
         # Parameters

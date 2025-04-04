@@ -16,22 +16,27 @@ else:
         from mock_camera import MockCamera as PiCamera
 
 class Camera:
-    def __init__(self, resolution=(640, 480)):
-        from libcamera import ColorSpace, Transform
+    def __init__(self, resolution=(1920, 1080)):
         self.camera = PiCamera()
+        self.resolution = resolution
+        self.is_running = False
+        self.configure()
+    
+    def configure(self):
+        from libcamera import ColorSpace, Transform
         sensor = None
         for sensor in self.camera.sensor_modes:
-            if sensor["size"][0] == resolution[0] and sensor["size"][1] == resolution[1]:
+            if sensor["size"][0] == self.resolution[0] and sensor["size"][1] == self.resolution[1]:
                 break
         if sensor is None:
-            raise ValueError(f"No sensor mode found for resolution {resolution}")
-        config = {
-            "size": resolution, 
+            raise ValueError(f"No sensor mode found for resolution {self.resolution}")
+        self.config = {
+            "size": self.resolution, 
             "format": "XRGB8888", 
             "colour_space": ColorSpace.Srgb(),
             "main": { 
                 "format": "XRGB8888",
-                "size": resolution,
+                "size": self.resolution,
             },
             "lores": {
                 "size": (640, 480), 
@@ -52,8 +57,7 @@ class Camera:
             },
             "controls": {},
         }
-        self.camera.configure(config)
-        self.is_running = False
+        self.camera.configure(self.config)
 
     def start_feed(self):
         # PiCamera2 starts automatically, so this is not needed
@@ -68,11 +72,11 @@ class Camera:
             self.is_running = False
 
     def capture_frame(self):
-        frame = self.camera.capture_array()
+        frame = self.camera.capture_array("main")
         if frame is None:
             print("Error capturing frame")
             # Create a dummy image (e.g., a black image) as fallback
-            frame = np.zeros((self.camera.configuration()["size"][1], self.camera.configuration()["size"][0], 3), dtype=np.uint8)
+            frame = np.zeros((self.config["main"]["size"][1], self.config["main"]["size"][0], 3), dtype=np.uint8)
 
         return frame
 

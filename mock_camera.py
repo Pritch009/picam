@@ -3,21 +3,22 @@ import numpy as np
 from PIL import Image
 
 class MockCamera:
-    def __init__(self, camera_index=0):
+    def __init__(self, resolution=(1920, 1080), camera_index=0):
         self.camera_index = camera_index
         self.video_capture = cv2.VideoCapture(self.camera_index)
-        self.resolution = (int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
-                           int(self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+        self.resolution = resolution if resolution is not None else (
+            int(self.video_capture.get(cv2.CAP_PROP_FRAME_WIDTH)),
+            int(self.video_capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        )
         self.is_running = True
-        print("Webcam preview started")
+        self.configure()
 
-    def configure(self, resolution=(640, 480)):
+    def configure(self):
         if not self.video_capture.isOpened():
             raise Exception(f"Could not open webcam at index {self.camera_index}")
-        self.resolution = resolution
-        self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, resolution[0])
-        self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, resolution[1])
-        print(f"Webcam configured to {resolution}")
+        self.video_capture.set(cv2.CAP_PROP_FRAME_WIDTH, self.resolution[0])
+        self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution[1])
+        print(f"Webcam configured to {self.resolution}")
 
     def start_preview(self):
         pass
