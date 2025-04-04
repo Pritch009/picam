@@ -132,7 +132,6 @@ class RichCamera:
                     elif max_time_condition:
                         print("Max recording duration reached, stopping recording...")
 
-                    print("\nRecording duration or motion timeout reached, stopping recording...")
                     print(f"{frame_number} frames recorded in {elapsed_time:.2f} seconds.")
 
                     # Update class state
@@ -142,10 +141,10 @@ class RichCamera:
                     self.animals_seen.clear()
 
                     # Update local state
-                    motion_detected = False
                     start_time = None
                     video_filename = None
                     frame_number = 0
+                    last_motion_time = current_time
 
             else:
                 # Reset motion_detected if no motion is detected for a while
