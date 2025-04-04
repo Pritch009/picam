@@ -72,7 +72,7 @@ class RichCamera:
             # Detect motion in the frame
             if self.motion_detector.get_motion_status():
                 last_motion_time = current_time  # Update last motion time
-                print("Motion detected, checking for animals...")
+                print("Motion detected...")
 
             if animals:
                 new_animal = False
@@ -84,7 +84,7 @@ class RichCamera:
                     frame = self.animal_recognizer.draw_bounding_box(frame, animal)
 
                 if not self.recording:
-                    print("Animals detected, starting recording...")
+                    print("Animals detected, now recording...")
                     self.recording = True
                     start_time = current_time
                     prev_frame_time = start_time
