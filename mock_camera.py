@@ -34,7 +34,7 @@ class MockCamera:
             print("Error capturing frame from webcam")
             # Create a dummy image (e.g., a black image) as fallback
             return None
-        
+
         return frame
 
     def close(self):

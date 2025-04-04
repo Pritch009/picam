@@ -1,5 +1,6 @@
+import time
 import cv2
-from pi_camera import Camera
+from rich_camera import RichCamera as Camera
 from PIL import Image
 import io
 
@@ -36,18 +37,22 @@ def test_video(video_path="test.mp4"):
         video_path, 
         fourcc,
         target_framerate,
-        (camera.resolution[1], camera.resolution[0])
+        (camera.resolution[0], camera.resolution[1]),
+        isColor=True
     )
 
     print("Camera started, capturing video...")
     # Capture video for 5 seconds
-    for i in range(150):  # Assuming 30 FPS
+    end_time = time.time() + 5  # Record for 5 seconds
+    i = 0
+    while time.time() < end_time:  # Assuming 30 FPS
         frame = camera.capture_frame()
         if frame is not None:
             print("*" * (i % 10) + " " * (10 - (i % 10)), end="\r")
         else:
             print("Failed to capture frame")
         video_writer.write(frame)
+        i += 1
 
     print("Saving video...")
     video_writer.release()
@@ -57,5 +62,5 @@ def test_video(video_path="test.mp4"):
     print("Camera closed")
 
 if __name__ == "__main__":
-    test_still()
+    # test_still()
     test_video()

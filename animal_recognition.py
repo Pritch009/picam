@@ -8,10 +8,12 @@ from ai_edge_litert.interpreter import Interpreter
 class AnimalRecognizer:
     def __init__(
         self,
-        model_path="https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1", 
+        model_path=None, 
         keywords=["cat", "man"],
         threshold=0.3
     ):
+        if model_path is None:
+            raise ValueError("Model path cannot be None.")
         self.model_path = model_path
         self.keywords = keywords
         self.threshold = threshold
@@ -99,15 +101,12 @@ class AnimalRecognizer:
             print("Model not loaded.")
             return []
 
-        # Convert the frame to RGB (if it's not already)
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
         # Get input shape   
         input_shape = self.input_details[0]['shape']
         input_height, input_width = input_shape[1:3]
 
         # Resize the frame to a fixed size (e.g., 640x480)
-        resized_frame = cv2.resize(rgb_frame, (input_width, input_height))
+        resized_frame = cv2.resize(frame, (input_width, input_height))
 
         # Expand dimensions since the model expects images to have shape: [1, height, width, 3]
         input_tensor = np.expand_dims(resized_frame, 0)

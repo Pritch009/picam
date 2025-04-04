@@ -1,4 +1,3 @@
-import cv2
 from libcamera import ColorSpace, Transform
 from picamera2 import Picamera2 as PiCamera
 
@@ -67,7 +66,7 @@ class Camera:
         # Convert the frame to BGR format (OpenCV uses BGR)
         # return frame
         frame = frame[:, :, :3]  # Slice to keep only R, G, and B channels
-
+        
         return frame
 
     def close(self):

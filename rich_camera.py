@@ -10,20 +10,20 @@ from video_database import VideoDatabase
 use_mock_camera = os.environ.get('USE_MOCK_CAMERA', 'False').lower() == 'true'
 
 if use_mock_camera:
-    from mock_camera import MockCamera as Camera
+    from mock_camera import MockCamera as HWCamera
     print("Using MockCamera")
 else:
     try:
-        from pi_camera import Camera
+        from pi_camera import HWCamera
         print("Using Raspberry Pi camera")
     except ImportError:
         print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
-        from mock_camera import MockCamera as Camera
+        from mock_camera import MockCamera as HWCamera
 
 class RichCamera:
     def __init__(
         self,
-        model_path="https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1",
+        model_path="./model/mobilenetv2_ssd_fixed_1920_1080.tflite",
         video_folder="videos",
         database_path="video_database.db",
         keywords=["man"],
@@ -34,7 +34,8 @@ class RichCamera:
         resolution=(1920, 1080)
     ):
         # Components
-        self.camera = Camera(resolution=resolution)
+        self.resolution = resolution
+        self.camera = HWCamera(resolution=resolution)
         self.motion_detector = MotionDetector()
         self.animal_recognizer = AnimalRecognizer(model_path=model_path, keywords=keywords, threshold=threshold)
         # Parameters
@@ -48,6 +49,21 @@ class RichCamera:
         self.video_writer = None
         self.last_motion_time = None  # Track the last time motion was detected
         self.animals_seen = set()  # Track unique animals seen
+
+    def start_feed(self):
+        self.camera.start_feed()
+        print("Camera feed started")
+
+    def stop_feed(self):
+        self.camera.stop_feed()
+        print("Camera feed stopped")
+    
+    def close(self):
+        self.camera.close()
+        print("Camera closed")
+
+    def capture_frame(self):
+        return self.camera.capture_frame()
 
     def run_in_background(self):
         print("Starting camera...")
@@ -111,7 +127,7 @@ class RichCamera:
                         video_filename, 
                         fourcc,
                         self.target_framerate,
-                        (frame.shape[1], frame.shape[0])
+                        (self.resolution[0], self.resolution[1]),
                     )
 
                     # Insert video entry into the database
