@@ -81,8 +81,8 @@ class Camera:
                     
         # Convert the frame to BGR format (OpenCV uses BGR)
         # return frame
-        frame = frame[:, :, :4]  # Slice to keep only R, G, and B channels
-        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        frame = frame[:, :, :3]  # Slice to keep only R, G, and B channels
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         return frame
 

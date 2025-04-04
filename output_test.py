@@ -41,10 +41,10 @@ def test_video(video_path="test.mp4"):
 
     print("Camera started, capturing video...")
     # Capture video for 5 seconds
-    for _ in range(150):  # Assuming 30 FPS
+    for i in range(150):  # Assuming 30 FPS
         frame = camera.capture_frame()
         if frame is not None:
-            print("Frame captured successfully")
+            print("*" * (i % 10) + " " * (10 - (i % 10)), end="\r")
         else:
             print("Failed to capture frame")
         video_writer.write(frame)
