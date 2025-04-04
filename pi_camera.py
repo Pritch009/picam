@@ -50,7 +50,7 @@ class Camera:
                 "output_size": sensor["size"],
                 "bit_depth": sensor["bit_depth"],
             },
-            controls: {
+            "controls": {
                 "AfMode": 0,
                 "AeMode": 0,
                 "AeExposureMode": 0,
