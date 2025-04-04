@@ -50,18 +50,10 @@ class Camera:
                 "output_size": sensor["size"],
                 "bit_depth": sensor["bit_depth"],
             },
-            "controls": {
-                "AfMode": 0,
-                "AeMode": 0,
-                "AeExposureMode": 0,
-                "AeMeteringMode": 0,
-                "AeTargetBrightness": 50,
-                "AwbMode": 0,
-                "AwbGain": [1.0, 1.0],
-                "AwbLock": False,
-            },
+            "controls": {},
         }
         self.camera.configure(config)
+        self.is_running = False
 
     def start_feed(self):
         # PiCamera2 starts automatically, so this is not needed
