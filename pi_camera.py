@@ -29,7 +29,6 @@ class Camera:
             "size": resolution, 
             "format": "XRGB8888", 
             "colour_space": ColorSpace.Srgb(),
-            "exposure_mode": "auto",
             "main": { 
                 "format": "XRGB8888",
                 "size": resolution,
