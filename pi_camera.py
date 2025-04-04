@@ -1,20 +1,6 @@
-import os
 import cv2
-import numpy as np
-
-use_mock_camera = os.environ.get('USE_MOCK_CAMERA', 'False').lower() == 'true'
-
-if use_mock_camera:
-    from mock_camera import MockCamera as PiCamera
-    print("Using MockCamera")
-else:
-    try:
-        from picamera2 import Picamera2
-        print("Using Raspberry Pi camera")
-        PiCamera = Picamera2
-    except ImportError:
-        print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
-        from mock_camera import MockCamera as PiCamera
+from libcamera import ColorSpace, Transform
+from picamera2 import Picamera2 as PiCamera
 
 class Camera:
     def __init__(self, resolution=(1920, 1080)):
@@ -24,7 +10,6 @@ class Camera:
         self.configure()
     
     def configure(self):
-        from libcamera import ColorSpace, Transform
         sensor = None
         for sensor in self.camera.sensor_modes:
             if sensor["size"][0] == self.resolution[0] and sensor["size"][1] == self.resolution[1]:
@@ -82,7 +67,6 @@ class Camera:
         # Convert the frame to BGR format (OpenCV uses BGR)
         # return frame
         frame = frame[:, :, :3]  # Slice to keep only R, G, and B channels
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         return frame
 

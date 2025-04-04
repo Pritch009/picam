@@ -20,27 +20,22 @@ class MockCamera:
         self.video_capture.set(cv2.CAP_PROP_FRAME_HEIGHT, self.resolution[1])
         print(f"Webcam configured to {self.resolution}")
 
-    def start_preview(self):
+    def start_feed(self):
         pass
 
-    def stop_preview(self):
+    def stop_feed(self):
         self.is_running = False
         print("Webcam preview stopped")
 
-    def capture(self, stream, format='jpeg'):
+    def capture_frame(self):
         # Capture frame from webcam
         ret, frame = self.video_capture.read()
         if not ret:
             print("Error capturing frame from webcam")
             # Create a dummy image (e.g., a black image) as fallback
-            frame = np.zeros((self.resolution[1], self.resolution[0], 3), dtype=np.uint8)
+            return None
         
-        # Convert the frame to PIL Image
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        img = Image.fromarray(frame_rgb)
-        
-        img.save(stream, format)
-        stream.seek(0)
+        return frame
 
     def close(self):
         if self.video_capture.isOpened():

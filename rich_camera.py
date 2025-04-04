@@ -1,11 +1,24 @@
 import datetime
+import os
 import time
-from pi_camera import Camera
 from motion_detection import MotionDetector
 from animal_recognition import AnimalRecognizer
 import cv2
 
 from video_database import VideoDatabase
+
+use_mock_camera = os.environ.get('USE_MOCK_CAMERA', 'False').lower() == 'true'
+
+if use_mock_camera:
+    from mock_camera import MockCamera as Camera
+    print("Using MockCamera")
+else:
+    try:
+        from pi_camera import Camera
+        print("Using Raspberry Pi camera")
+    except ImportError:
+        print("picamera not found.  Using MockCamera.  Set environment variable USE_MOCK_CAMERA=TRUE to suppress this message.")
+        from mock_camera import MockCamera as Camera
 
 class RichCamera:
     def __init__(
