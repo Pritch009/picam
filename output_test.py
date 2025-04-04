@@ -62,5 +62,5 @@ def test_video(video_path="test.mp4"):
     print("Camera closed")
 
 if __name__ == "__main__":
-    # test_still()
+    test_still()
     test_video()

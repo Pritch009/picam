@@ -18,29 +18,24 @@ class Camera:
             raise ValueError(f"No sensor mode found for resolution {self.resolution}")
         self.config = {
             "size": self.resolution, 
-            "format": "XRGB8888", 
-            "colour_space": ColorSpace.Srgb(),
             "main": { 
                 "format": "XRGB8888",
-                "size": self.resolution,
+                "size": (1920, 1080),
             },
             "lores": {
-                "size": (640, 480), 
                 "format": "YUV420",
+                "size": (640, 480), 
             },
             "raw": {
-                "size": (640, 480),
                 "format": "SRGGB10",
+                "size": (1920, 1080),
             },
             "transform": Transform(),
             "buffer_count": 2,
             "display": None,
             "encode": None,
             "queue": True,
-            "sensor": {
-                "output_size": sensor["size"],
-                "bit_depth": sensor["bit_depth"],
-            },
+            "sensor": {},
             "controls": {},
         }
         self.camera.configure(self.config)
