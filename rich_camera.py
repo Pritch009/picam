@@ -95,6 +95,7 @@ class RichCamera:
         motion_detector = MotionDetector()
         frame_num = 0
         processing_time_queue = Queue()
+        last_frame_time = start_time
 
         while True:
             if queue.empty():
@@ -118,9 +119,13 @@ class RichCamera:
                     print("No motion detected for a while, stopping recording...")
                     break
 
+            num_frames = max(1, int(round((frame_time - last_frame_time) * self.target_framerate)))
+
             # Write the frame to the video file
-            video_writer.write(frame)
-            print("*" * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
+            for _ in range(num_frames):
+                video_writer.write(frame)
+
+            print(f"{frame_num}:{num_frames}" + "*" * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
@@ -171,8 +176,6 @@ class RichCamera:
                 capture = self.capture_frame("main")
                 frames_captured += 1
                 queue.put(capture)
-
-                print(f"{frames_captured}" + "*" * (frames_captured % 10) + " " * (10 - (frames_captured % 10)), end="\r")
 
                 if stop_condition.is_set():
                     # Stop the frame capture loop
