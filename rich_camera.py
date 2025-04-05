@@ -91,11 +91,11 @@ class RichCamera:
     def run_and_process(self):
         self.start_feed()
         print(f"Starting camera feed ({self.resolution[0]}x{self.resolution[1]})...")
-        start_time = time.time()
-        last_motion_time = start_time
         video_writer = None
         frame_num = 0
         processing_time_queue = Queue()
+        start_time = time.time()
+        last_motion_time = start_time
         last_frame_time = start_time
 
         while True:
@@ -112,9 +112,9 @@ class RichCamera:
                 last_motion_time = frame_time
                 if video_writer is None:
                     # Start recording
+                    start_time = frame_time
                     video_writer = self.create_video_writer(frame_time, frame.shape)
                     print("Starting video recording...")
-                    start_time = frame_time
 
             if video_writer is not None:
                 frame_num += 1
