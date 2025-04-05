@@ -134,6 +134,8 @@ class RichCamera:
         video_writer = None
         last_motion_time = start_time
         last_recognition_time = start_time
+        recognition_times = []
+        motion_detection_times = []
 
         while not stop:
             # Check if there are frames in the queue
@@ -149,12 +151,17 @@ class RichCamera:
 
             # Run motion detection
             if frame_count % self.frames_between_motion_detection == 0:
-                if self.motion_detector.detect_motion(frame):
+                motion_detection_time_start = time.time()
+                motion_detected = self.motion_detector.detect_motion(frame)
+                motion_detection_times.append(time.time() - motion_detection_time_start)
+                if motion_detected:
                     last_motion_time = time.time()
             
             # Motion was detected already, lets check for animals every X frames
             if frame_count % self.frames_between_recognition == 0:
+                recognition_start = time.time()
                 animals = self.animal_recognizer.recognize_animal(frame)
+                recognition_times.append(time.time() - recognition_start)
 
                 if len(animals) > 0:
                     last_recognition_time = time.time()
@@ -175,16 +182,18 @@ class RichCamera:
                 if elapsed_time_condition or motion_condition:
                     self.stop_condition_met.set()
 
-                    # Update class state
-                    stop = True
+                    # Stop recording
                     video_writer.release()
+                    stop = True
 
                     if motion_condition:
                         print(f"No motion detected for a while ({int(frame_time - last_motion_time)} seconds), stopping recording...")
                     elif elapsed_time_condition:
                         print("Max recording duration reached, stopping recording...")
 
-                    print(f"{frame_count} frames recorded in {frame_time:.2f} seconds.")             
+                    print(f"{frame_count} frames recorded in {frame_time:.2f} seconds.")     
+                    print(f"Average recognition time: {sum(recognition_times) / len(recognition_times):.2f} seconds per frame processed.")        
+                    print(f"Average motion detection time: {sum(motion_detection_times) / len(motion_detection_times):.2f} seconds per frame processed.")
 
     def create_video_writer(self, start_time):
         # Create a timestamp for the video filename
