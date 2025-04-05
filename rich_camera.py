@@ -158,6 +158,7 @@ class RichCamera:
                 motion_detection_time_start = time.time()
                 motion_detected = self.motion_detector.detect_motion(frame)
                 motion_detection_times.append(time.time() - motion_detection_time_start)
+                print(f"Motion detection took {time.time() - motion_detection_time_start:.2f} seconds.")
                 if motion_detected:
                     last_motion_time = time.time()
             
@@ -166,6 +167,7 @@ class RichCamera:
                 recognition_start = time.time()
                 animals = self.animal_recognizer.recognize_animal(frame)
                 recognition_times.append(time.time() - recognition_start)
+                print(f"Recognized {len(animals)} animals in {time.time() - recognition_start:.2f} seconds.")
 
                 if len(animals) > 0:
                     last_recognition_time = time.time()
