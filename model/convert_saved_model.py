@@ -1,6 +1,7 @@
 import tensorflow as tf
 
-resolution = (1920, 1080)
+# resolution = (1920, 1080)
+resolution = (1280, 720)
 output_model_name = f'mobilenetv2_ssd_fixed_{resolution[0]}_{resolution[1]}.tflite'
 model = tf.saved_model.load('./model')
 
