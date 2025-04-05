@@ -35,8 +35,17 @@ class RichCamera:
         target_framerate=30.0,
         resolution=(1920, 1080)
     ):
-        # Components
+        # Parameters
         self.resolution = resolution
+        self.model_path = model_path
+        self.threshold = threshold
+        self.keywords = keywords
+        self.recording_duration = recording_duration  # seconds
+        self.motion_timeout = motion_timeout  # seconds without motion to stop recording
+        self.video_folder = video_folder # Folder to save videos
+        self.database_path =  database_path # Path to the SQLite database file
+        self.target_framerate = target_framerate  # Target framerate for video recording
+        # Components
         self.camera = HWCamera(resolution=resolution)
         self.animal_recognizer = AnimalRecognizer(
             model_path=self.model_path, 
@@ -47,12 +56,6 @@ class RichCamera:
         self.queue = Queue()
         self.stop_condition_met = Event()
         self.start_condition_met = Event()
-        # Parameters
-        self.recording_duration = recording_duration  # seconds
-        self.motion_timeout = motion_timeout  # seconds without motion to stop recording
-        self.video_folder = video_folder # Folder to save videos
-        self.database_path =  database_path # Path to the SQLite database file
-        self.target_framerate = target_framerate  # Target framerate for video recording
         # Configure later
         self.frames_to_recognize = 5  # Number of frames to utilize for initial recognition
         self.frames_between_recognition = 4  # Number of frames to skip between recognition
