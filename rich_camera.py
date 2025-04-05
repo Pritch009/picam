@@ -122,14 +122,14 @@ class RichCamera:
                 # Calculate the number of frames to repeat for this frame
                 # The time_finished minux the last_frame_time gives the time taken to take and process the frame
                 # then converted into the number of frames to maintain the target framerate
-                num_frames = max(1, round(time_finished - last_frame_time, self.target_framerate))
+                num_frames = max(1, int(round(time_finished - last_frame_time, self.target_framerate)))
                 # Write the frame to the video file
                 for i in range(num_frames):
                     video_writer.write(frame)
                 print(f"{frame_num}" + "." * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
 
                 last_frame_time = time_finished
-                
+
                 motion_timeout = frame_time - last_motion_time >= self.timeout
                 recording_timeout = frame_time - start_time >= self.recording_duration
                 if motion_timeout or recording_timeout:
