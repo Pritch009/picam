@@ -112,7 +112,7 @@ class RichCamera:
                 last_motion_time = frame_time
                 if video_writer is None:
                     # Start recording
-                    video_writer = self.create_video_writer(frame_time)
+                    video_writer = self.create_video_writer(frame_time, frame.shape)
                     print("Starting video recording...")
                     start_time = frame_time
 
@@ -231,7 +231,7 @@ class RichCamera:
                 if len(animals) > 0:
                     last_recognition_time = time.time()
                     if video_writer is None:
-                        video_writer = self.create_video_writer(frame_time)
+                        video_writer = self.create_video_writer(frame_time, frame.shape)
                 
             # if recording 
             if video_writer is not None:
@@ -267,10 +267,10 @@ class RichCamera:
 
         self.stop_condition_met.set()
 
-    def create_video_writer(self, start_time):
+    def create_video_writer(self, start_time, resolution):
         # Create a timestamp for the video filename
         time_str = datetime.fromtimestamp(start_time).strftime("%Y%m%d_%H%M%S")
-        filename = f"{self.video_folder}/animal_recording_{time_str}.mp4"
+        filename = f"{self.video_folder}/animal_recording_{time_str}_{resolution[0]}x{resolution[1]}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         video_writer = cv2.VideoWriter(
             filename, 
