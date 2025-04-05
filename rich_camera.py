@@ -164,11 +164,15 @@ class RichCamera:
                 target=self.video_writer_and_process,
                 args=(frame_time, queue, stop_condition)
             ).start()
+            frames_captured = 0
 
             # Start the frame capture loop
             while True:
                 capture = self.capture_frame("main")
+                frames_captured += 1
                 queue.put(capture)
+
+                print(f"{frames_captured}" + "*" * (frames_captured % 10) + " " * (10 - (frames_captured % 10)), end="\r")
 
                 if stop_condition.is_set():
                     # Stop the frame capture loop
