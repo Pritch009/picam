@@ -113,6 +113,7 @@ class RichCamera:
                     # Start recording
                     video_writer = self.create_video_writer(frame_time)
                     print("Starting video recording...")
+                    start_time = frame_time
 
             if video_writer is not None:
                 frame_num += 1
