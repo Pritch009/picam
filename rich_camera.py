@@ -102,8 +102,8 @@ class RichCamera:
             frame, frame_time = self.capture_frame("main")
             motion_detected = self.motion_detector.detect_motion(frame)
             time_finished = time.time()
-            time_elapsed = time_finished - frame_time
-            processing_time_queue.put(time_elapsed)
+            processing_time_elapsed = time_finished - frame_time
+            processing_time_queue.put(processing_time_elapsed)
             if processing_time_queue.qsize() > 10:
                 processing_time_queue.get()
             
@@ -133,6 +133,7 @@ class RichCamera:
                     video_writer.release()
                     video_writer = None
                     print("Stopping video recording due to inactivity...")
+                    print(f"{frame_num} frames recorded in {(frame_time - start_time):.2f} seconds.")
                     print(f"Frame average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
                     break
 
