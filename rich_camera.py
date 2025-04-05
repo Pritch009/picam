@@ -6,6 +6,7 @@ from animal_recognition import AnimalRecognizer
 from threading import Event, Thread
 from queue import Queue
 import cv2
+from datetime import datetime
 
 from video_database import VideoDatabase
 
@@ -210,7 +211,7 @@ class RichCamera:
 
     def create_video_writer(self, start_time):
         # Create a timestamp for the video filename
-        time_str = datetime.datetime.fromtimestamp(start_time).strftime("%Y%m%d_%H%M%S")
+        time_str = datetime.fromtimestamp(start_time).strftime("%Y%m%d_%H%M%S")
         filename = f"{self.video_folder}/animal_recording_{time_str}.mp4"
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         video_writer = cv2.VideoWriter(
