@@ -94,16 +94,18 @@ class RichCamera:
         start_time = time.time()
         last_motion_time = start_time
         video_writer = None
-        animals = []
         frame_num = 0
+        processing_time_queue = Queue()
+
         while True:
             # Capture frame
             frame, frame_time = self.capture_frame("main")
-            animals = self.animal_recognizer.recognize_animal(frame)
             motion_detected = self.motion_detector.detect_motion(frame)
             time_finished = time.time()
             time_elapsed = time_finished - frame_time
-            print(f"Frame captured at {frame_time:.2f} seconds, processing time: {time_elapsed:.2f} seconds")
+            processing_time_queue.put(time_elapsed)
+            if processing_time_queue.qsize() > 10:
+                processing_time_queue.get()
             
             if motion_detected and video_writer is None:
                 # Start recording
@@ -112,7 +114,6 @@ class RichCamera:
 
             if video_writer is not None:
                 frame_num += 1
-                self.animal_recognizer.draw_bounding_boxes(frame, animals)
                 # Write the frame to the video file
                 video_writer.write(frame)
                 print("." * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
@@ -129,6 +130,7 @@ class RichCamera:
                     video_writer.release()
                     video_writer = None
                     print("Stopping video recording due to inactivity...")
+                    print(f"Frame average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
                     break
 
         
