@@ -31,7 +31,7 @@ class RichCamera:
         keywords=["man"],
         threshold=0.3,
         recording_duration=300,
-        motion_timeout=15,
+        timeout=15,
         target_framerate=30.0,
         resolution=(1920, 1080)
     ):
@@ -41,7 +41,7 @@ class RichCamera:
         self.threshold = threshold
         self.keywords = keywords
         self.recording_duration = recording_duration  # seconds
-        self.motion_timeout = motion_timeout  # seconds without motion to stop recording
+        self.timeout = timeout  # seconds without motion to stop recording
         self.video_folder = video_folder # Folder to save videos
         self.database_path =  database_path # Path to the SQLite database file
         self.target_framerate = target_framerate  # Target framerate for video recording
@@ -183,9 +183,10 @@ class RichCamera:
                 video_writer.write(frame)
 
                 # Check for stop conditions
-                elapsed_time_condition = frame_time - last_recognition_time >= self.recording_duration
-                motion_condition = frame_time - last_motion_time >= self.motion_timeout
-                if elapsed_time_condition or motion_condition:
+                elapsed_time_condition = time.time() - start_time >= self.recording_duration
+                recog_condition = frame_time - last_recognition_time >= self.timeout
+                motion_condition = frame_time - last_motion_time >= self.timeout
+                if elapsed_time_condition or motion_condition or recog_condition:
                     self.stop_condition_met.set()
 
                     # Stop recording
@@ -196,6 +197,8 @@ class RichCamera:
                         print(f"No motion detected for a while ({int(frame_time - last_motion_time)} seconds), stopping recording...")
                     elif elapsed_time_condition:
                         print("Max recording duration reached, stopping recording...")
+                    elif recog_condition:
+                        print("No animals detected for a while, stopping recording...")
 
                     print(f"{frame_count} frames recorded in {frame_time:.2f} seconds.")     
                     print(f"Average recognition time: {sum(recognition_times) / len(recognition_times):.2f} seconds per frame processed.")        

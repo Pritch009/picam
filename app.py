@@ -43,7 +43,7 @@ camera = RichCamera(
     keywords=keywords,
     threshold=threshold,
     recording_duration=recording_duration,
-    motion_timeout=motion_timeout,
+    timeout=motion_timeout,
     resolution=resolution,
 )
 
