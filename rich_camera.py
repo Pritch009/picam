@@ -124,9 +124,9 @@ class RichCamera:
                 # then converted into the number of frames to maintain the target framerate
                 num_frames = max(1, int(round((time_finished - last_frame_time) * self.target_framerate)))
                 # Write the frame to the video file
+                print(f"{frame_num}:{num_frames}" + ("." * (frame_num % 10)) + (" " * (10 - (frame_num % 10))), end="\r")
                 for i in range(num_frames):
                     video_writer.write(frame)
-                print(f"{frame_num}" + "." * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
 
                 last_frame_time = time_finished
 
