@@ -29,8 +29,8 @@ app = Flask(__name__)
 model_path = "model/mobilenetv2_ssd_fixed_1280_720.tflite"
 keywords = ['person', 'cat', 'bear']
 threshold = 0.5
-recording_duration = 5  # seconds
-motion_timeout = 20  # seconds
+recording_duration = 60  # seconds
+motion_timeout = 10  # seconds
 video_folder = "videos"
 resolution = (1280, 720)
 
