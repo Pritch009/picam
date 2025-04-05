@@ -91,7 +91,7 @@ class RichCamera:
         self.start_feed()
         print("Starting motion detection...")
         while True:
-            frame = self.capture_frame("lores")
+            frame, _ = self.capture_frame("lores")
             if frame is None:
                 print("Error capturing frame for motion detection")
                 time.sleep(1)
@@ -113,8 +113,7 @@ class RichCamera:
 
         while True:
             # Capture frame
-            frame = self.capture_frame("main")
-            frame_time = time.time()
+            frame, frame_time = self.capture_frame("main")
             
             # Put the frame in the queue
             self.queue.put((frame, frame_time))
