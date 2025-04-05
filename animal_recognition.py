@@ -147,7 +147,7 @@ class AnimalRecognizer:
 
         return animal_detections
 
-    def draw_bounding_box(self, frame, boxes):
+    def draw_bounding_boxes(self, frame, boxes):
         # Draw bounding boxes around recognized animals on the frame
         # Check if boxes is a tuple or a list of tuples
         if isinstance(boxes, tuple):
