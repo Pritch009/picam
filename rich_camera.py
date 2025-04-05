@@ -85,8 +85,6 @@ class RichCamera:
                 motion_detected_event.clear()
             time.sleep(0.1)  # Adjust the sleep time as needed
 
-    def run_video_recorder()
-
     def run_in_background(self):
         print("Starting camera...")
         start_time = None
