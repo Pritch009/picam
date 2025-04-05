@@ -67,6 +67,6 @@ def get_video(video_id):
     
 
 if __name__ == '__main__':
-    threading.Thread(target=camera.run_motion_detection).start()
+    threading.Thread(target=camera.run_and_process).start()
 
     app.run(host='0.0.0.0', port=6143)
