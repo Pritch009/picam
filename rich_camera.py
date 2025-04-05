@@ -96,6 +96,7 @@ class RichCamera:
         video_writer = None
         frame_num = 0
         processing_time_queue = Queue()
+        last_frame_time = start_time
 
         while True:
             # Capture frame
@@ -117,8 +118,15 @@ class RichCamera:
 
             if video_writer is not None:
                 frame_num += 1
+
+                # Calculate the number of frames to repeat for this frame
+                # The time_finished minux the last_frame_time gives the time taken to take and process the frame
+                # then converted into the number of frames to maintain the target framerate
+                frames_to_repeat = int(self.target_framerate / (time_finished - last_frame_time))
+                last_frame_time = time_finished
                 # Write the frame to the video file
-                video_writer.write(frame)
+                for i in range(frames_to_repeat):
+                    video_writer.write(frame)
                 print("." * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
 
                 motion_timeout = frame_time - last_motion_time >= self.timeout
