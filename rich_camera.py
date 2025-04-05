@@ -87,6 +87,50 @@ class RichCamera:
             raise Exception("Error capturing frame")
         
         return (frame, frame_recorded_time)
+    
+    def run_and_process(self):
+        self.start_feed()
+        print(f"Starting camera feed ({self.resolution[0]}x{self.resolution[1]})...")
+        start_time = time.time()
+        last_motion_time = start_time
+        video_writer = None
+        animals = []
+        frame_num = 0
+        while True:
+            # Capture frame
+            frame, frame_time = self.capture_frame("main")
+            animals = self.animal_recognizer.recognize_animal(frame)
+            motion_detected = self.motion_detector.detect_motion(frame)
+            time_finished = time.time()
+            time_elapsed = time_finished - frame_time
+            print(f"Frame captured at {frame_time:.2f} seconds, processing time: {time_elapsed:.2f} seconds")
+            
+            if motion_detected and video_writer is None:
+                # Start recording
+                video_writer = self.create_video_writer(frame_time)
+                print("Starting video recording...")
+
+            if video_writer is not None:
+                frame_num += 1
+                self.animal_recognizer.draw_bounding_boxes(frame, animals)
+                # Write the frame to the video file
+                video_writer.write(frame)
+                print("." * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
+
+                motion_timeout = frame_time - last_motion_time >= self.timeout
+                recording_timeout = frame_time - start_time >= self.recording_duration
+                if motion_timeout or recording_timeout:
+                    if motion_timeout:
+                        print(f"No motion detected for a while ({int(frame_time - last_motion_time)} seconds), stopping recording...")
+                    elif recording_timeout:
+                        print("Max recording duration reached, stopping recording...")
+
+                    # Stop recording
+                    video_writer.release()
+                    video_writer = None
+                    print("Stopping video recording due to inactivity...")
+                    break
+
         
     def run_motion_detection(self):
         self.start_feed()

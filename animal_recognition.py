@@ -28,7 +28,10 @@ class AnimalRecognizer:
             print("Model downloaded.")
         else:
             # Load from saved_model.pb
-            self.model = Interpreter(model_path=self.model_path)
+            self.model = Interpreter(
+                model_path=self.model_path,
+                num_threads=4,
+            )
             self.model.allocate_tensors()
             self.input_details = self.model.get_input_details()
             self.output_details = self.model.get_output_details()
