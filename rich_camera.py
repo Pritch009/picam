@@ -48,12 +48,11 @@ class RichCamera:
         self.target_framerate = target_framerate  # Target framerate for video recording
         # Components
         self.camera = HWCamera(resolution=resolution)
-        self.animal_recognizer = AnimalRecognizer(
-            model_path=self.model_path, 
-            keywords=self.keywords, 
-            threshold=self.threshold
-        )
-        self.motion_detector = MotionDetector()
+        # self.animal_recognizer = AnimalRecognizer(
+        #     model_path=self.model_path, 
+        #     keywords=self.keywords, 
+        #     threshold=self.threshold
+        # )
         self.queue = Queue()
         self.stop_condition_met = Event()
         self.start_condition_met = Event()
@@ -88,66 +87,94 @@ class RichCamera:
         
         return (frame, frame_recorded_time)
     
+    def video_writer_and_process(self, start_time, queue, stop_event):
+        video_writer = self.create_video_writer(start_time, self.resolution)
+        frames_without_motion = 0
+        frames_without_motion_limit = self.timeout * self.target_framerate
+        recording_frame_limit = self.recording_duration * self.target_framerate
+        motion_detector = MotionDetector()
+        frame_num = 0
+        processing_time_queue = Queue()
+
+        while True:
+            if queue.empty():
+                time.sleep(0.1)
+                continue
+
+            frame, frame_time = queue.get()
+            frame_num += 1
+
+            # Process the frame before writing it
+            process_start_time = time.time()
+            motion_detected = motion_detector.detect_motion(frame)
+            process_end_time = time.time()
+            processing_time_queue.put(process_end_time - process_start_time)
+
+            if motion_detected:
+                frames_without_motion = 0
+            else:
+                frames_without_motion += 1
+                if frames_without_motion > frames_without_motion_limit:
+                    print("No motion detected for a while, stopping recording...")
+                    break
+
+            # Write the frame to the video file
+            video_writer.write(frame)
+            print("*" * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
+            
+            # Check for stop conditions
+            if frame_num >= recording_frame_limit:
+                print("Max recording duration reached, stopping recording...")
+                break
+
+        self.stop_condition_met.set()
+        video_writer.release()
+        print(f"Video recording stopped. {frame_num} frames recorded.")
+        print(f"Average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
+
+    
     def run_and_process(self):
         self.start_feed()
         print(f"Starting camera feed ({self.resolution[0]}x{self.resolution[1]})...")
-        video_writer = None
-        frame_num = 0
         processing_time_queue = Queue()
-        start_time = time.time()
-        last_motion_time = start_time
-        last_frame_time = start_time
+        motion_detector = MotionDetector()
+        stop_condition = Event()
+        frame_time = None
 
         while True:
-            # Capture frame
-            frame, frame_time = self.capture_frame("main")
-            motion_detected = self.motion_detector.detect_motion(frame)
-            time_finished = time.time()
-            processing_time_elapsed = time_finished - frame_time
-            processing_time_queue.put(processing_time_elapsed)
-            if processing_time_queue.qsize() > 10:
-                processing_time_queue.get()
+            while True:
+                # Capture frame
+                frame, frame_time = self.capture_frame("lores")
+                processing_time_start = time.time()
+                motion_detected = motion_detector.detect_motion(frame)
+                if processing_time_queue.qsize() > 10:
+                    processing_time_queue.get()
+                
+                processing_end_time = time.time()
+                processing_time_queue.put(processing_end_time - processing_time_start)
+                if motion_detected:
+                    break
+                else:
+                    time.sleep(0.1)
+                    continue
+
+            queue = Queue(maxsize=100)
+            # Start the video writer and processing in a separate thread
+            Thread(
+                target=self.video_writer_and_process,
+                args=(frame_time, queue, stop_condition)
+            ).start()
+
+            # Start the frame capture loop
+            while True:
+                capture = self.capture_frame("main")
+                queue.put(capture)
+
+                if stop_condition.is_set():
+                    # Stop the frame capture loop
+                    stop_condition.clear()
+                    break
             
-            if motion_detected:
-                last_motion_time = frame_time
-                if video_writer is None:
-                    # Start recording
-                    start_time = frame_time
-                    last_frame_time = frame_time
-                    video_writer = self.create_video_writer(frame_time, frame.shape)
-                    start_time_str = datetime.fromtimestamp(start_time).strftime("%Y%m%d_%H%M%S")
-                    print(f"Starting video recording at {start_time_str}...")
-
-            if video_writer is not None:
-                frame_num += 1
-
-                # Calculate the number of frames to repeat for this frame
-                # The time_finished minux the last_frame_time gives the time taken to take and process the frame
-                # then converted into the number of frames to maintain the target framerate
-                num_frames = max(1, int(round((time_finished - last_frame_time) * self.target_framerate)))
-                # Write the frame to the video file
-                print(f"{frame_num}:{num_frames}" + ("." * (frame_num % 10)) + (" " * (10 - (frame_num % 10))) + f"{time_finished:.2f} - {last_frame_time:.2f} => {(time_finished - last_frame_time):.2f}", end="\r")
-                for i in range(num_frames):
-                    video_writer.write(frame)
-
-                last_frame_time = time_finished
-
-                motion_timeout = frame_time - last_motion_time >= self.timeout
-                recording_timeout = frame_time - start_time >= self.recording_duration
-                if motion_timeout or recording_timeout:
-                    print("\n")
-                    if motion_timeout:
-                        print(f"No motion detected for a while ({int(frame_time - last_motion_time)} seconds), stopping recording...")
-                    elif recording_timeout:
-                        print("Max recording duration reached, stopping recording...")
-
-                    # Stop recording
-                    print("Stopping video recording due to inactivity...")
-                    print(f"{frame_num} frames recorded in {(frame_time - start_time):.2f} seconds.")
-                    print(f"Frame average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
-                    video_writer.release()
-                    video_writer = None
-                    frame_num = 0
     
 
         
