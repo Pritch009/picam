@@ -107,10 +107,12 @@ class RichCamera:
             if processing_time_queue.qsize() > 10:
                 processing_time_queue.get()
             
-            if motion_detected and video_writer is None:
-                # Start recording
-                video_writer = self.create_video_writer(frame_time)
-                print("Starting video recording...")
+            if motion_detected:
+                last_motion_time = frame_time
+                if video_writer is None:
+                    # Start recording
+                    video_writer = self.create_video_writer(frame_time)
+                    print("Starting video recording...")
 
             if video_writer is not None:
                 frame_num += 1
