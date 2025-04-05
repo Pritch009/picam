@@ -174,7 +174,7 @@ class RichCamera:
             # Start the frame capture loop
             while True:
                 capture = self.capture_frame("main")
-                queue.put(capture)
+                queue.put_nowait(capture)
 
                 if stop_condition.is_set():
                     # Stop the frame capture loop
