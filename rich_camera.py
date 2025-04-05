@@ -120,6 +120,7 @@ class RichCamera:
                     break
 
             num_frames = max(1, int(round((frame_time - last_frame_time) * self.target_framerate)))
+            last_frame_time = frame_time
 
             # Write the frame to the video file
             for _ in range(num_frames):
