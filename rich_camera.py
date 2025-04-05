@@ -132,18 +132,20 @@ class RichCamera:
                 motion_timeout = frame_time - last_motion_time >= self.timeout
                 recording_timeout = frame_time - start_time >= self.recording_duration
                 if motion_timeout or recording_timeout:
+                    print("\n")
                     if motion_timeout:
                         print(f"No motion detected for a while ({int(frame_time - last_motion_time)} seconds), stopping recording...")
                     elif recording_timeout:
                         print("Max recording duration reached, stopping recording...")
 
                     # Stop recording
-                    video_writer.release()
-                    video_writer = None
                     print("Stopping video recording due to inactivity...")
                     print(f"{frame_num} frames recorded in {(frame_time - start_time):.2f} seconds.")
                     print(f"Frame average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
-                    break
+                    video_writer.release()
+                    video_writer = None
+                    frame_num = 0
+    
 
         
     def run_motion_detection(self):
@@ -232,6 +234,7 @@ class RichCamera:
                     last_recognition_time = time.time()
                     if video_writer is None:
                         video_writer = self.create_video_writer(frame_time, frame.shape)
+                        start_time = frame_time
                 
             # if recording 
             if video_writer is not None:
@@ -260,7 +263,7 @@ class RichCamera:
                     print(f"{frame_count} frames recorded in {(frame_time - start_time):.2f} seconds.")     
                     print(f"Average recognition time: {sum(recognition_times) / len(recognition_times):.2f} seconds per frame processed.")        
                     print(f"Average motion detection time: {sum(motion_detection_times) / len(motion_detection_times):.2f} seconds per frame processed.")
-            elif video_writer is None and time.time() - start_time > 2:
+            elif video_writer is None and (frame_time - last_motion_time) > 2:
                 # If no animals detected for 2 seconds, stop processing
                 stop = True
                 print("No animals detected for 2 seconds, stopping processing...")
