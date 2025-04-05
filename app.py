@@ -26,12 +26,13 @@ app = Flask(__name__)
 
 # model_path = "https://tfhub.dev/google/openimages_v4/ssd/mobilenet_v2/1"
 # model_path = "model/"
-model_path = "model/mobilenetv2_ssd_fixed_1920_1080.tflite"
+model_path = "model/mobilenetv2_ssd_fixed_1280_720.tflite"
 keywords = ['person', 'cat', 'bear']
 threshold = 0.5
 recording_duration = 5  # seconds
 motion_timeout = 20  # seconds
 video_folder = "videos"
+resolution = (1280, 720)
 
 if not os.path.exists(video_folder):
     os.makedirs(video_folder)
@@ -42,7 +43,8 @@ camera = RichCamera(
     keywords=keywords,
     threshold=threshold,
     recording_duration=recording_duration,
-    motion_timeout=motion_timeout
+    motion_timeout=motion_timeout,
+    resolution=resolution,
 )
 
 @app.route('/list_videos')
@@ -65,6 +67,6 @@ def get_video(video_id):
     
 
 if __name__ == '__main__':
-    threading.Thread(target=camera.run_in_background).start()
+    threading.Thread(target=camera.run_motion_detection).start()
 
     app.run(host='0.0.0.0', port=6143)

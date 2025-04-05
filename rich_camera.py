@@ -3,6 +3,7 @@ import os
 import time
 from motion_detection import MotionDetector
 from animal_recognition import AnimalRecognizer
+from threading import Event, Thread
 import cv2
 
 from video_database import VideoDatabase
@@ -36,13 +37,21 @@ class RichCamera:
         # Components
         self.resolution = resolution
         self.camera = HWCamera(resolution=resolution)
-        self.animal_recognizer = AnimalRecognizer(model_path=model_path, keywords=keywords, threshold=threshold)
+        self.animal_recognizer = AnimalRecognizer(
+            model_path=self.model_path, 
+            keywords=self.keywords, 
+            threshold=self.threshold
+        )
+        self.motion_detector = MotionDetector()
         # Parameters
         self.recording_duration = recording_duration  # seconds
         self.motion_timeout = motion_timeout  # seconds without motion to stop recording
         self.video_folder = video_folder # Folder to save videos
         self.database_path =  database_path # Path to the SQLite database file
         self.target_framerate = target_framerate  # Target framerate for video recording
+        # Configure later
+        self.frames_to_recognize = 5  # Number of frames to utilize for initial recognition
+        self.frames_between_recognition = 4  # Number of frames to skip between recognition
         # State
         self.recording = False
         self.video_writer = None
@@ -62,28 +71,105 @@ class RichCamera:
         print("Camera closed")
 
     def capture_frame(self, camera="main"):
-        return self.camera.capture_frame(camera=camera)
+        frame = self.camera.capture_frame(camera=camera)
+        frame_recorded_time = time.time()
+
+        if frame is None:
+            raise Exception("Error capturing frame")
+        
+        return (frame, frame_recorded_time)
+        
+
     
-    def run_motion_detection(camera, motion_detected_event):
-        motion_detector = MotionDetector()
-        camera.start_feed()
+    def run_motion_detection(self):
+        self.start_feed()
         print("Starting motion detection...")
         while True:
-            frame = camera.capture_frame("lores")
+            frame = self.capture_frame("lores")
             if frame is None:
                 print("Error capturing frame for motion detection")
                 time.sleep(1)
                 continue
             # Detect motion
-            motion_status = motion_detector.detect_motion(frame)
-            if motion_status:
+            if self.motion_detector.detect_motion(frame):
                 print("Motion detected...")
                 # Trigger the event
-                motion_detected_event.set()
-            else:
-                # Clear the event if no motion is detected
-                motion_detected_event.clear()
+                self.run_recognition()
+
             time.sleep(0.1)  # Adjust the sleep time as needed
+
+    def create_video_writer(self, start_time):
+        # Create a timestamp for the video filename
+        filename = f"{self.video_folder}/animal_recording_{start_time}.mp4"
+        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        video_writer = cv2.VideoWriter(
+            filename, 
+            fourcc,
+            self.target_framerate,
+            (self.resolution[0], self.resolution[1]),
+        )
+        return video_writer
+
+    def run_recognition(self):
+        print("starting recognition...")
+
+        # if an animal is detected, start recording
+        recording = False
+        start_time = time.time()
+        last_motion_time = time.time()
+
+        # first, check if any animals can be detected for a handful of frames
+        frame_count = self.frames_to_recognize
+        frame = None
+        frame_recorded_time = None
+        animals = []
+        video_writer = None
+        while frame_count < self.frames_to_recognize:
+            frame, frame_recorded_time = self.capture_frame("main")
+            frame_count += 1
+
+            if frame is None:
+                raise Exception("Error capturing frame for recognition")
+            
+            # Detect animals
+            animals = self.animal_recognizer.recognize_animal(frame)
+            if len(animals) > 0:
+                print("Animals detected!")
+                recording = True
+                break
+
+        while recording:
+            video_writer = self.create_video_writer(start_time)
+            self.animal_recognizer.draw_bounding_box(frame, animals)
+            if self.motion_detector.detect_motion(frame):
+                last_motion_time = frame_recorded_time
+
+            # Check if the recording duration has been reached
+            elapsed_time = frame_recorded_time - start_time
+            if elapsed_time >= self.recording_duration:
+                print("Max recording duration reached, stopping recording...")
+                recording = False
+                break
+
+            # Check if no motion has been detected for a while
+            if frame_recorded_time - last_motion_time >= self.motion_timeout:
+                print("No motion detected for a while, stopping recording...")
+                recording = False
+                break
+
+            # Write the frame to the video file    
+            video_writer.write(frame)
+
+            # Capture next frame
+            frame = self.capture_frame("main")
+        
+        if video_writer is not None:
+            video_writer.release()
+            print(f"Video saved successfully to {video_writer.get_filename()}")
+
+
+
+
 
     def run_in_background(self):
         print("Starting camera...")
