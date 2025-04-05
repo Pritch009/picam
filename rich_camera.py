@@ -203,6 +203,10 @@ class RichCamera:
                     print(f"{frame_count} frames recorded in {frame_time:.2f} seconds.")     
                     print(f"Average recognition time: {sum(recognition_times) / len(recognition_times):.2f} seconds per frame processed.")        
                     print(f"Average motion detection time: {sum(motion_detection_times) / len(motion_detection_times):.2f} seconds per frame processed.")
+            elif video_writer is None and time.time() - start_time > 2:
+                # If no animals detected for 2 seconds, stop processing
+                stop = True
+                print("No animals detected for 2 seconds, stopping processing...")
 
     def create_video_writer(self, start_time):
         # Create a timestamp for the video filename
