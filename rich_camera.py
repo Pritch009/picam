@@ -187,8 +187,6 @@ class RichCamera:
                 recog_condition = frame_time - last_recognition_time >= self.timeout
                 motion_condition = frame_time - last_motion_time >= self.timeout
                 if elapsed_time_condition or motion_condition or recog_condition:
-                    self.stop_condition_met.set()
-
                     # Stop recording
                     video_writer.release()
                     stop = True
@@ -207,6 +205,8 @@ class RichCamera:
                 # If no animals detected for 2 seconds, stop processing
                 stop = True
                 print("No animals detected for 2 seconds, stopping processing...")
+
+        self.stop_condition_met.set()
 
     def create_video_writer(self, start_time):
         # Create a timestamp for the video filename
