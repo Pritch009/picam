@@ -1,4 +1,5 @@
 import cv2
+from threading import Lock
 from libcamera import ColorSpace, Transform
 from picamera2 import Picamera2 as PiCamera
 
@@ -7,11 +8,12 @@ class Camera:
         self.camera = PiCamera()
         self.resolution = resolution
         self.is_running = False
+        self.lock = Lock()
         self.configure()
     
     def configure(self):
         self.config = self.camera.create_video_configuration(
-            main={"size": (1920, 1080), "format": "XRGB8888"},
+            main={"size": (1280, 720), "format": "XRGB8888"},
             lores={"size": (640, 480), "format": "YUV420"},
             raw={"size": (1920, 1080), "format": "SRGGB10"},
         )
@@ -28,6 +30,14 @@ class Camera:
         if self.is_running:
             self.camera.stop()
             self.is_running = False
+
+    def lock(self):
+        self.lock.acquire()
+        print("Camera lock acquired")
+
+    def release(self):
+        self.lock.release()
+        print("Camera lock released")
 
     def capture_frame(self, camera="main"):
         frame = None

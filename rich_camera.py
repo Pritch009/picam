@@ -36,7 +36,6 @@ class RichCamera:
         # Components
         self.resolution = resolution
         self.camera = HWCamera(resolution=resolution)
-        self.motion_detector = MotionDetector()
         self.animal_recognizer = AnimalRecognizer(model_path=model_path, keywords=keywords, threshold=threshold)
         # Parameters
         self.recording_duration = recording_duration  # seconds
@@ -62,8 +61,31 @@ class RichCamera:
         self.camera.close()
         print("Camera closed")
 
-    def capture_frame(self):
-        return self.camera.capture_frame()
+    def capture_frame(self, camera="main"):
+        return self.camera.capture_frame(camera=camera)
+    
+    def run_motion_detection(camera, motion_detected_event):
+        motion_detector = MotionDetector()
+        camera.start_feed()
+        print("Starting motion detection...")
+        while True:
+            frame = camera.capture_frame("lores")
+            if frame is None:
+                print("Error capturing frame for motion detection")
+                time.sleep(1)
+                continue
+            # Detect motion
+            motion_status = motion_detector.detect_motion(frame)
+            if motion_status:
+                print("Motion detected...")
+                # Trigger the event
+                motion_detected_event.set()
+            else:
+                # Clear the event if no motion is detected
+                motion_detected_event.clear()
+            time.sleep(0.1)  # Adjust the sleep time as needed
+
+    def run_video_recorder()
 
     def run_in_background(self):
         print("Starting camera...")
@@ -78,7 +100,7 @@ class RichCamera:
         while True:
             prev_frame_time = current_time
             # Capture frame
-            frame = self.camera.capture_frame()
+            frame = self.camera.capture_frame("main" if self.recording else "lores")
 
             # Check if the frame is valid
             if frame is None:
