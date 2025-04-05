@@ -90,6 +90,7 @@ class RichCamera:
     def run_motion_detection(self):
         self.start_feed()
         print("Starting motion detection...")
+        lores_motion_detector = MotionDetector()
         while True:
             frame, _ = self.capture_frame("lores")
             if frame is None:
@@ -98,11 +99,12 @@ class RichCamera:
                 continue
 
             # Detect motion
-            if self.motion_detector.detect_motion(frame):
+            if lores_motion_detector.detect_motion(frame):
                 print("Motion detected...")
                 # Trigger the event
                 Thread(target=self.process_frames).start()
                 self.record_frames()
+                lores_motion_detector.reset()
 
             time.sleep(0.1)  # Adjust the sleep time as needed
 

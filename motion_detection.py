@@ -27,3 +27,7 @@ class MotionDetector:
 
     def get_motion_status(self):
         return self.motion_detected
+    
+    def reset(self):
+        self.previous_frame = None
+        self.motion_detected = False
