@@ -173,7 +173,7 @@ class RichCamera:
                 if len(animals) > 0:
                     last_recognition_time = time.time()
                     if video_writer is None:
-                        video_writer = self.create_video_writer(time)
+                        video_writer = self.create_video_writer(frame_time)
                 
             # if recording 
             if video_writer is not None:
