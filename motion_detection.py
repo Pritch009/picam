@@ -1,60 +1,74 @@
 import cv2
-import cv2
 import numpy as np
 
 class MotionDetector:
-    def __init__(self, sensitivity=0.5, min_area=500):
+    def __init__(self, mode="auto", sensitivity=0.2, min_area=500):
+        """
+        mode: "auto", "normal", or "lowlight"
+        sensitivity: 0 to 1, lower = more sensitive
+        min_area: minimum area of motion (in pixels) to count as motion
+        """
+        self.mode = mode
         self.sensitivity = sensitivity
         self.min_area = min_area
         self.previous_frame = None
         self.motion_detected = False
-        self.alpha = 0.5  # Weight for accumulateWeighted
 
-    def detect_motion_lores(self, current_frame):
-        gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.blur(gray, (3, 3))  # or skip this
+    def detect_motion(self, frame):
+        # Convert to grayscale if needed
+        if frame.ndim == 3:
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        else:
+            gray = frame.copy()
+
+        # Resize if needed (optional for lores)
+        # gray = cv2.resize(gray, (320, 240))
+
+        # Blur to reduce noise, keep small kernel for low light
+        gray = cv2.blur(gray, (3, 3))
 
         if self.previous_frame is None:
             self.previous_frame = gray
             return False
 
-        frame_delta = cv2.absdiff(self.previous_frame, gray)
-        self.previous_frame = gray
+        if self.mode == "auto":
+            return self._detect_motion_auto(gray)
+        elif self.mode == "normal":
+            return self._detect_motion_normal(gray)
+        elif self.mode == "lowlight":
+            return self._detect_motion_lowlight(gray)
+        else:
+            raise ValueError("Invalid motion mode")
 
-        _, thresh = cv2.threshold(frame_delta, 10, 255, cv2.THRESH_BINARY)
-        thresh = cv2.dilate(thresh, None, iterations=1)
+    def _detect_motion_auto(self, gray):
+        # Basic logic to switch based on contrast (e.g., IR mode)
+        contrast = gray.std()
+        if contrast < 15:
+            return self._detect_motion_lowlight(gray)
+        else:
+            return self._detect_motion_normal(gray)
 
-        contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        self.motion_detected = any(cv2.contourArea(c) > 100 for c in contours)
-
-        return self.motion_detected
-
-    def detect_motion(self, current_frame):
-        # Convert to grayscale
-        gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
-
-        # Fast box blur instead of expensive Gaussian
-        gray = cv2.blur(gray, (3, 3))  # or skip this
-
-        # Initialize background frame
-        if self.previous_frame is None:
-            self.previous_frame = gray.astype("float")
-            return False
-
-        # Update running average background
-        cv2.accumulateWeighted(gray, self.previous_frame, self.alpha)
-
-        # Compute difference between background and current frame
-        frame_delta = cv2.absdiff(gray, cv2.convertScaleAbs(self.previous_frame))
-
-        # Threshold the delta image
-        _, thresh = cv2.threshold(frame_delta, int(255 * self.sensitivity), 255, cv2.THRESH_BINARY)
+    def _detect_motion_normal(self, gray):
+        delta = cv2.absdiff(self.previous_frame, gray)
+        _, thresh = cv2.threshold(delta, int(255 * self.sensitivity), 255, cv2.THRESH_BINARY)
         thresh = cv2.dilate(thresh, None, iterations=2)
 
-        # Find contours in thresholded image
         contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         self.motion_detected = any(cv2.contourArea(c) > self.min_area for c in contours)
 
+        self.previous_frame = gray
+        return self.motion_detected
+
+    def _detect_motion_lowlight(self, gray):
+        delta = cv2.absdiff(self.previous_frame, gray)
+        _, thresh = cv2.threshold(delta, 8, 255, cv2.THRESH_BINARY)  # Lower threshold for IR
+        thresh = cv2.dilate(thresh, None, iterations=1)
+
+        # Add pixel count fallback for IR
+        motion_pixels = cv2.countNonZero(thresh)
+        self.motion_detected = motion_pixels > (self.min_area * 2)
+
+        self.previous_frame = gray
         return self.motion_detected
 
     def get_motion_status(self):
