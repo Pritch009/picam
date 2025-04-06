@@ -128,7 +128,7 @@ class RichCamera:
             for _ in range(num_frames):
                 video_writer.write(frame)
 
-            print(f"{frame_num}:{num_frames}" + "*" * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
+            print(f"{frame_num}:{num_frames}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (10 - (frame_num % 10)), end="\r")
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
