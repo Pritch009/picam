@@ -42,6 +42,7 @@ class RichCamera:
         self.model_path = model_path
         self.threshold = threshold
         self.keywords = keywords
+        self.debug = debug
         self.recording_duration = recording_duration  # seconds
         self.timeout = timeout  # seconds without motion to stop recording
         self.video_folder = video_folder # Folder to save videos
