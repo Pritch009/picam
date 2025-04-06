@@ -113,7 +113,7 @@ class RichCamera:
             process_start_time = time.perf_counter()
             if frame_num % motion_skip == 0:
                 # Process the frame before writing it
-                motion_detected = motion_detector.detect_motion(frame)
+                motion_detected = motion_detector.detect_motion_lores(frame)
                 motion_detection_time = time.perf_counter() - process_start_time
                 print(f"Motion detection took {motion_detection_time:.2f} seconds.")
 
