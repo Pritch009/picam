@@ -157,13 +157,14 @@ class RichCamera:
         frame_time = None
 
         while True:
-            while True:
+            motion_not_detected = True
+            while motion_not_detected:
                 # Capture frame
                 frame, frame_time = self.capture_frame("lores")
                 motion_detected = motion_detector.detect_motion(frame)
                 
                 if motion_detected:
-                    break
+                    motion_not_detected = False
                 else:
                     time.sleep(0.1)
                     continue
@@ -179,8 +180,9 @@ class RichCamera:
             num_frames = 0
             start_capture_time = time.perf_counter()
 
+            capturing = True
             # Start the frame capture loop
-            while True:
+            while capturing:
                 capture_start = time.perf_counter()
                 capture = self.capture_frame("main")
                 queue.put(capture)
@@ -189,15 +191,15 @@ class RichCamera:
                 if stop_condition.is_set():
                     # Stop the frame capture loop
                     stop_condition.clear()
-                    break
+                    capturing = False
+                else:
+                    end_capture_time = time.perf_counter()
+                    if num_frames % 10 == 0:
+                        print(f"Average capture time: {((end_capture_time - start_capture_time) / num_frames):.2f} seconds per frame captured.")
 
-                end_capture_time = time.perf_counter()
-                if num_frames % 10 == 0:
-                    print(f"Average capture time: {((end_capture_time - start_capture_time) / num_frames):.2f} seconds per frame captured.")
-
-                sleep_time = time_to_capture - (end_capture_time - capture_start)
-                if sleep_time > 0:
-                    time.sleep(sleep_time)
+                    sleep_time = time_to_capture - (end_capture_time - capture_start)
+                    if sleep_time > 0:
+                        time.sleep(sleep_time)
             
     
 
