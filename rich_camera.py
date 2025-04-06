@@ -217,7 +217,7 @@ class RichCamera:
                 continue
 
             # Detect motion
-            if lores_motion_detector.detect_motion_lores(frame):
+            if lores_motion_detector.detect_motion(frame):
                 print("Motion detected...")
                 # Trigger the event
                 Thread(target=self.process_frames).start()
