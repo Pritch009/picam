@@ -17,6 +17,7 @@ class Camera:
             lores={"size": (640, 480), "format": "YUV420"},
             raw={"size": (1920, 1080), "format": "SRGGB10"},
         )
+        self.config['transform'] = Transform(vflip=True,)
         self.camera.configure(self.config)
 
     def start_feed(self):
