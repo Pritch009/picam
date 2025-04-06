@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 class MotionDetector:
-    def __init__(self, mode="auto", sensitivity=0.2, min_area=500):
+    def __init__(self, mode="auto", sensitivity=0.3, min_area=300):
         """
         mode: "auto", "normal", or "lowlight"
         sensitivity: 0 to 1, lower = more sensitive
