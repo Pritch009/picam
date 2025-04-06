@@ -107,14 +107,10 @@ class RichCamera:
             frame, frame_time = queue.get()
             frame_num += 1
 
+            process_start_time = time.time()
             if frame_num % motion_skip == 0:
                 # Process the frame before writing it
-                process_start_time = time.time()
                 motion_detected = motion_detector.detect_motion(frame)
-                process_end_time = time.time()
-                processing_time_queue.put(process_end_time - process_start_time)
-                if processing_time_queue.qsize() > 10:
-                    processing_time_queue.get()
 
                 if motion_detected:
                     frames_without_motion = 0
@@ -124,12 +120,19 @@ class RichCamera:
                         print("No motion detected for a while, stopping recording...")
                         break
 
+
+
             num_frames = max(1, int(round((frame_time - last_frame_time) * self.target_framerate)))
             last_frame_time = frame_time
 
             # Write the frame to the video file
             for _ in range(num_frames):
                 video_writer.write(frame)
+
+            process_end_time = time.time()
+            processing_time_queue.put(process_end_time - process_start_time)
+            if processing_time_queue.qsize() > 20:
+                processing_time_queue.get()
 
             avg_processing_time = sum(processing_time_queue.queue) / len(processing_time_queue.queue) if not processing_time_queue.empty() else 0
             print(f"{frame_num}:{num_frames}:{avg_processing_time}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
