@@ -91,7 +91,7 @@ class RichCamera:
         print("Starting video writer...")
         video_writer = self.create_video_writer(start_time, self.resolution)
         frames_without_motion = 0
-        motion_skip = 4
+        motion_skip = 1
         frames_without_motion_limit = int(self.timeout * self.target_framerate / motion_skip)
         recording_frame_limit = self.recording_duration * self.target_framerate
         motion_detector = MotionDetector()
