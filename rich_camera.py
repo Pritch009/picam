@@ -171,15 +171,22 @@ class RichCamera:
                 args=(frame_time, queue, stop_condition)
             ).start()
 
+            time_to_capture = 1.0 / self.target_framerate
+
             # Start the frame capture loop
             while True:
+                capture_start = time.time()
                 capture = self.capture_frame("main")
-                queue.put_nowait(capture)
+                queue.put(capture)
 
                 if stop_condition.is_set():
                     # Stop the frame capture loop
                     stop_condition.clear()
                     break
+
+                capture_elapsed = time.time() - capture_start
+                if capture_elapsed < time_to_capture:
+                    time.sleep(time_to_capture - capture_elapsed)
             
     
 
