@@ -113,6 +113,8 @@ class RichCamera:
                 motion_detected = motion_detector.detect_motion(frame)
                 process_end_time = time.time()
                 processing_time_queue.put(process_end_time - process_start_time)
+                if processing_time_queue.qsize() > 10:
+                    processing_time_queue.get()
 
                 if motion_detected:
                     frames_without_motion = 0
@@ -129,7 +131,8 @@ class RichCamera:
             for _ in range(num_frames):
                 video_writer.write(frame)
 
-            print(f"{frame_num}:{num_frames}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)), end="\r")
+            avg_processing_time = sum(processing_time_queue.queue) / len(processing_time_queue.queue) if not processing_time_queue.empty() else 0
+            print(f"{frame_num}:{num_frames}:{avg_processing_time}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)), end="\r")
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
@@ -145,7 +148,6 @@ class RichCamera:
     def run_capture(self):
         self.start_feed()
         print(f"Starting camera feed ({self.resolution[0]}x{self.resolution[1]})...")
-        processing_time_queue = Queue()
         motion_detector = MotionDetector()
         stop_condition = Event()
         frame_time = None
@@ -154,13 +156,8 @@ class RichCamera:
             while True:
                 # Capture frame
                 frame, frame_time = self.capture_frame("lores")
-                processing_time_start = time.time()
                 motion_detected = motion_detector.detect_motion(frame)
-                if processing_time_queue.qsize() > 10:
-                    processing_time_queue.get()
                 
-                processing_end_time = time.time()
-                processing_time_queue.put(processing_end_time - processing_time_start)
                 if motion_detected:
                     break
                 else:
