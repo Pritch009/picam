@@ -88,6 +88,7 @@ class RichCamera:
         return (frame, frame_recorded_time)
     
     def video_writer_and_process(self, start_time, queue, stop_event):
+        print("Starting video writer...")
         video_writer = self.create_video_writer(start_time, self.resolution)
         frames_without_motion = 0
         motion_skip = 5

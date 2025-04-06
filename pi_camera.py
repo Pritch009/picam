@@ -13,7 +13,7 @@ class Camera:
     
     def configure(self):
         self.config = self.camera.create_video_configuration(
-            main={"size": (1280, 720), "format": "XRGB8888"},
+            main={"size": self.resolution, "format": "XRGB8888"},
             lores={"size": (640, 480), "format": "YUV420"},
             raw={"size": (1920, 1080), "format": "SRGGB10"},
         )
