@@ -98,6 +98,7 @@ class RichCamera:
         frame_num = 0
         processing_time_queue = Queue()
         last_frame_time = start_time
+        first_frame_time = None
 
         while True:
             if queue.empty():
@@ -106,6 +107,8 @@ class RichCamera:
 
             frame, frame_time = queue.get()
             frame_num += 1
+            if first_frame_time is None:
+                first_frame_time = frame_time
 
             process_start_time = time.perf_counter()
             if frame_num % motion_skip == 0:
@@ -140,10 +143,9 @@ class RichCamera:
             if frame_num >= recording_frame_limit:
                 print("Max recording duration reached, stopping recording...")
                 break
-
         stop_event.set()
         video_writer.release()
-        print(f"Video recording stopped. {frame_num} frames recorded.")
+        print(f"Video recording stopped. {frame_num} frames recorded for a total of {time.time() - first_frame_time:.2f} seconds.")
         print(f"Average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
 
     
