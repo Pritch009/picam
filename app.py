@@ -35,7 +35,7 @@ video_folder = "videos"
 # resolution = (1920, 1080)
 # target_framerate = 20.0
 resolution = (1280, 720)
-target_framerate = 30.0
+target_framerate = 20.0
 
 if not os.path.exists(video_folder):
     os.makedirs(video_folder)
