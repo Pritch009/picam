@@ -172,17 +172,23 @@ class RichCamera:
             ).start()
 
             time_to_capture = 1.0 / self.target_framerate
+            start_capture_time = time.time()
+            num_frames = 0
 
             # Start the frame capture loop
             while True:
                 capture_start = time.time()
                 capture = self.capture_frame("main")
                 queue.put(capture)
+                num_frames += 1
 
                 if stop_condition.is_set():
                     # Stop the frame capture loop
                     stop_condition.clear()
                     break
+
+                if num_frames % 10 == 0:
+                    print(f"Average capture time: {((time.time() - start_capture_time) / num_frames):.2f} seconds per frame captured.")
 
                 capture_elapsed = time.time() - capture_start
                 if capture_elapsed < time_to_capture:
