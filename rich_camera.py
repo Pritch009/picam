@@ -133,7 +133,7 @@ class RichCamera:
                 print("Max recording duration reached, stopping recording...")
                 break
 
-        self.stop_condition_met.set()
+        stop_event.set()
         video_writer.release()
         print(f"Video recording stopped. {frame_num} frames recorded.")
         print(f"Average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
