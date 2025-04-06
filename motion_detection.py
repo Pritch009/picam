@@ -8,7 +8,7 @@ class MotionDetector:
         self.min_area = min_area
         self.previous_frame = None
         self.motion_detected = False
-        self.alpha = 0.5  # Weight for accumulateWeighted
+        self.alpha = 0.3  # Weight for accumulateWeighted
 
     def detect_motion_lores(self, current_frame):
         gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
