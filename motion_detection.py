@@ -34,7 +34,7 @@ class MotionDetector:
         gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
 
         # Fast box blur instead of expensive Gaussian
-        gray = cv2.blur(gray, (9, 9))
+        gray = cv2.blur(gray, (3, 3))  # or skip this
 
         # Initialize background frame
         if self.previous_frame is None:
