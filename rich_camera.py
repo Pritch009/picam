@@ -107,7 +107,7 @@ class RichCamera:
             frame, frame_time = queue.get()
             frame_num += 1
 
-            process_start_time = time.time()
+            process_start_time = time.perf_counter()
             if frame_num % motion_skip == 0:
                 # Process the frame before writing it
                 motion_detected = motion_detector.detect_motion(frame)
@@ -120,8 +120,6 @@ class RichCamera:
                         print("No motion detected for a while, stopping recording...")
                         break
 
-
-
             num_frames = max(1, int(round((frame_time - last_frame_time) * self.target_framerate)))
             last_frame_time = frame_time
 
@@ -129,13 +127,12 @@ class RichCamera:
             for _ in range(num_frames):
                 video_writer.write(frame)
 
-            process_end_time = time.time()
-            processing_time_queue.put(process_end_time - process_start_time)
+            processing_time_queue.put(time.perf_counter() - process_start_time)
             if processing_time_queue.qsize() > 20:
                 processing_time_queue.get()
 
             avg_processing_time = sum(processing_time_queue.queue) / len(processing_time_queue.queue) if not processing_time_queue.empty() else 0
-            print(f"{frame_num}:{num_frames}:{avg_processing_time}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
+            print(f"{frame_num}:{num_frames}:{avg_processing_time:.2f}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
@@ -175,12 +172,12 @@ class RichCamera:
             ).start()
 
             time_to_capture = 1.0 / self.target_framerate
-            start_capture_time = time.time()
             num_frames = 0
+            start_capture_time = time.perf_counter()
 
             # Start the frame capture loop
             while True:
-                capture_start = time.time()
+                capture_start = time.perf_counter()
                 capture = self.capture_frame("main")
                 queue.put(capture)
                 num_frames += 1
@@ -190,12 +187,13 @@ class RichCamera:
                     stop_condition.clear()
                     break
 
+                end_capture_time = time.perf_counter()
                 if num_frames % 10 == 0:
-                    print(f"Average capture time: {((time.time() - start_capture_time) / num_frames):.2f} seconds per frame captured.")
+                    print(f"Average capture time: {((end_capture_time - start_capture_time) / num_frames):.2f} seconds per frame captured.")
 
-                capture_elapsed = time.time() - capture_start
-                if capture_elapsed < time_to_capture:
-                    time.sleep(time_to_capture - capture_elapsed)
+                sleep_time = time_to_capture - (end_capture_time - capture_start)
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
             
     
 
