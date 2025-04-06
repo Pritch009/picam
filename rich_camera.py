@@ -90,7 +90,8 @@ class RichCamera:
     def video_writer_and_process(self, start_time, queue, stop_event):
         video_writer = self.create_video_writer(start_time, self.resolution)
         frames_without_motion = 0
-        frames_without_motion_limit = self.timeout * self.target_framerate
+        motion_skip = 2
+        frames_without_motion_limit = int(self.timeout * self.target_framerate / motion_skip)
         recording_frame_limit = self.recording_duration * self.target_framerate
         motion_detector = MotionDetector()
         frame_num = 0
@@ -105,19 +106,20 @@ class RichCamera:
             frame, frame_time = queue.get()
             frame_num += 1
 
-            # Process the frame before writing it
-            process_start_time = time.time()
-            motion_detected = motion_detector.detect_motion(frame)
-            process_end_time = time.time()
-            processing_time_queue.put(process_end_time - process_start_time)
+            if frame_num % motion_skip == 0:
+                # Process the frame before writing it
+                process_start_time = time.time()
+                motion_detected = motion_detector.detect_motion(frame)
+                process_end_time = time.time()
+                processing_time_queue.put(process_end_time - process_start_time)
 
-            if motion_detected:
-                frames_without_motion = 0
-            else:
-                frames_without_motion += 1
-                if frames_without_motion > frames_without_motion_limit:
-                    print("No motion detected for a while, stopping recording...")
-                    break
+                if motion_detected:
+                    frames_without_motion = 0
+                else:
+                    frames_without_motion += 1
+                    if frames_without_motion > frames_without_motion_limit:
+                        print("No motion detected for a while, stopping recording...")
+                        break
 
             num_frames = max(1, int(round((frame_time - last_frame_time) * self.target_framerate)))
             last_frame_time = frame_time
