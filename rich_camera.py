@@ -324,7 +324,7 @@ class RichCamera:
         # Create a timestamp for the video filename
         time_str = datetime.fromtimestamp(start_time).strftime("%Y%m%d_%H%M%S")
         filename = f"{self.video_folder}/animal_recording_{time_str}_{resolution[0]}x{resolution[1]}.mp4"
-        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv2.VideoWriter_fourcc(*'avc1')
         video_writer = cv2.VideoWriter(
             filename, 
             fourcc,
