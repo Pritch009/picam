@@ -160,7 +160,7 @@ class RichCamera:
             while True:
                 # Capture frame
                 frame, frame_time = self.capture_frame("lores")
-                motion_detected = motion_detector.detect_motion(frame)
+                motion_detected = motion_detector.detect_motion_lores(frame)
                 
                 if motion_detected:
                     break
