@@ -36,6 +36,7 @@ video_folder = "videos"
 # target_framerate = 20.0
 resolution = (1280, 720)
 target_framerate = 20.0
+debug = False
 
 if not os.path.exists(video_folder):
     os.makedirs(video_folder)
@@ -49,6 +50,7 @@ camera = RichCamera(
     timeout=motion_timeout,
     resolution=resolution,
     target_framerate=target_framerate,
+    debug=debug
 )
 
 @app.route('/list_videos')

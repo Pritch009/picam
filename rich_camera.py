@@ -34,7 +34,8 @@ class RichCamera:
         recording_duration=300,
         timeout=15,
         target_framerate=30.0,
-        resolution=(1920, 1080)
+        resolution=(1920, 1080),
+        debug=True,
     ):
         # Parameters
         self.resolution = resolution
@@ -115,7 +116,8 @@ class RichCamera:
                 # Process the frame before writing it
                 motion_detected = motion_detector.detect_motion(frame)
                 motion_detection_time = time.perf_counter() - process_start_time
-                print(f"Motion detection took {motion_detection_time:.2f} seconds.")
+                if self.debug:
+                    print(f"Motion detection took {motion_detection_time:.2f} seconds.")
 
                 if motion_detected:
                     frames_without_motion = 0
@@ -137,7 +139,8 @@ class RichCamera:
                 processing_time_queue.get()
 
             avg_processing_time = sum(processing_time_queue.queue) / len(processing_time_queue.queue) if not processing_time_queue.empty() else 0
-            print(f"{frame_num}:{num_frames}:{avg_processing_time:.2f}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
+            if self.debug:
+                    print(f"{frame_num}:{num_frames}:{avg_processing_time:.2f}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
@@ -195,7 +198,8 @@ class RichCamera:
                 else:
                     end_capture_time = time.perf_counter()
                     if num_frames % 10 == 0:
-                        print(f"Average capture time: {((end_capture_time - start_capture_time) / num_frames):.2f} seconds per frame captured.")
+                        if self.debug:
+                            print(f"Average capture time: {((end_capture_time - start_capture_time) / num_frames):.2f} seconds per frame captured.")
 
                     sleep_time = time_to_capture - (end_capture_time - capture_start)
                     if sleep_time > 0:
@@ -278,7 +282,8 @@ class RichCamera:
                 motion_detection_time_start = time.time()
                 motion_detected = self.motion_detector.detect_motion(frame)
                 motion_detection_times.append(time.time() - motion_detection_time_start)
-                print(f"Motion detection took {time.time() - motion_detection_time_start:.2f} seconds.")
+                if self.debug:
+                    print(f"Motion detection took {time.time() - motion_detection_time_start:.2f} seconds.")
                 if motion_detected:
                     last_motion_time = time.time()
             
@@ -287,7 +292,8 @@ class RichCamera:
                 recognition_start = time.time()
                 animals = self.animal_recognizer.recognize_animal(frame)
                 recognition_times.append(time.time() - recognition_start)
-                print(f"Recognized {len(animals)} animals in {time.time() - recognition_start:.2f} seconds.")
+                if self.debug:
+                    print(f"Recognized {len(animals)} animals in {time.time() - recognition_start:.2f} seconds.")
 
                 if len(animals) > 0:
                     last_recognition_time = time.time()
