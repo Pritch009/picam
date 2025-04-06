@@ -32,7 +32,10 @@ threshold = 0.5
 recording_duration = 60  # seconds
 motion_timeout = 10  # seconds
 video_folder = "videos"
-resolution = (1920, 1080)
+# resolution = (1920, 1080)
+# target_framerate = 10
+resolution = (1280, 720)
+target_framerate = 20.0
 
 if not os.path.exists(video_folder):
     os.makedirs(video_folder)
@@ -45,6 +48,7 @@ camera = RichCamera(
     recording_duration=recording_duration,
     timeout=motion_timeout,
     resolution=resolution,
+    target_framerate=target_framerate,
 )
 
 @app.route('/list_videos')
