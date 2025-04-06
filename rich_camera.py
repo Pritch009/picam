@@ -132,7 +132,7 @@ class RichCamera:
                 video_writer.write(frame)
 
             avg_processing_time = sum(processing_time_queue.queue) / len(processing_time_queue.queue) if not processing_time_queue.empty() else 0
-            print(f"{frame_num}:{num_frames}:{avg_processing_time}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)), end="\r")
+            print(f"{frame_num}:{num_frames}:{avg_processing_time}:{frames_without_motion}:{queue.qsize()}" + "*" * (frame_num % 10) + " " * (20 - (frame_num % 10)))
             
             # Check for stop conditions
             if frame_num >= recording_frame_limit:
