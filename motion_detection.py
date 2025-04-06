@@ -3,12 +3,12 @@ import cv2
 import numpy as np
 
 class MotionDetector:
-    def __init__(self, sensitivity=0.2, min_area=300):
+    def __init__(self, sensitivity=0.5, min_area=300):
         self.sensitivity = sensitivity
         self.min_area = min_area
         self.previous_frame = None
         self.motion_detected = False
-        self.alpha = 0.3  # Weight for accumulateWeighted
+        self.alpha = 0.5  # Weight for accumulateWeighted
 
     def detect_motion_lores(self, current_frame):
         gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
