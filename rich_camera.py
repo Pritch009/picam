@@ -205,7 +205,10 @@ class RichCamera:
     def run_motion_detection(self):
         self.start_feed()
         print("Starting motion detection...")
-        lores_motion_detector = MotionDetector()
+        lores_motion_detector = MotionDetector(
+            min_area=100,
+            sensitivity=0.5,
+        )
         while True:
             frame, _ = self.capture_frame("lores")
             if frame is None:
