@@ -141,7 +141,7 @@ class RichCamera:
         print(f"Average processing time: {sum(processing_time_queue.queue) / len(processing_time_queue.queue):.2f} seconds per frame processed.")
 
     
-    def run_and_process(self):
+    def run_capture(self):
         self.start_feed()
         print(f"Starting camera feed ({self.resolution[0]}x{self.resolution[1]})...")
         processing_time_queue = Queue()
